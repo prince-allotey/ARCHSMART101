@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    /* ✅ Required for project references */
+    "composite": true,
+    "noEmit": false,
+
+    /* ✅ Output & environment setup */
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+
+    /* ✅ Vite + Node typing */
+    "types": ["node", "vite/client"],
+
+    /* ✅ Modern TS safety */
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["vite.config.ts", "env.d.ts"]
+}

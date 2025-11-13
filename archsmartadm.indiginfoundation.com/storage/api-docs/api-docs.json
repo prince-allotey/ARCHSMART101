@@ -1,0 +1,870 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "ArchSmart API Documentation",
+        "description": "Complete API documentation for ArchSmart Real Estate Platform",
+        "contact": {
+            "name": "ArchSmart Support",
+            "email": "admin@archsmart.com"
+        },
+        "license": {
+            "name": "Proprietary",
+            "url": "https://archsmart.indiginfoundation.com/license"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "https://archsmartadm.indiginfoundation.com/api",
+            "description": "Production API Server"
+        },
+        {
+            "url": "http://localhost:8000/api",
+            "description": "Local Development Server"
+        }
+    ],
+    "paths": {
+        "/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register a new user",
+                "description": "Create a new user account with specified role (admin, agent, or user)",
+                "operationId": "5d4fa5d5607ed675ba93907e1fc94534",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "password_confirmation",
+                                    "role"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "enum": [
+                                            "admin",
+                                            "agent",
+                                            "user"
+                                        ],
+                                        "example": "user"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Registration successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "🎉 Registration successful!"
+                                        },
+                                        "user": {
+                                            "$ref": "#/components/schemas/User"
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "1|abcdef123456..."
+                                        },
+                                        "token_type": {
+                                            "type": "string",
+                                            "example": "Bearer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login user",
+                "description": "Authenticate user and get access token",
+                "operationId": "67d6d0fdd54fba132e1b6f55ca254183",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "admin@gmail.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "✅ Login successful!"
+                                        },
+                                        "user": {
+                                            "$ref": "#/components/schemas/User"
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "2|xyz789..."
+                                        },
+                                        "token_type": {
+                                            "type": "string",
+                                            "example": "Bearer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout user",
+                "description": "Revoke current access token",
+                "operationId": "28d48c13fca984400ac8de99f54ee13a",
+                "responses": {
+                    "200": {
+                        "description": "Logout successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "👋 Logged out successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/user": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Get current authenticated user",
+                "description": "Retrieve currently authenticated user details",
+                "operationId": "2baab1eeb5fd49516237a38da22e7a07",
+                "responses": {
+                    "200": {
+                        "description": "User details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Update user profile",
+                "description": "Update authenticated user profile information",
+                "operationId": "19a3c8bca5d611b2d76ea7711a9438e9",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Updated"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john.new@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+1234567890"
+                                    },
+                                    "bio": {
+                                        "type": "string",
+                                        "example": "Professional real estate agent"
+                                    },
+                                    "company": {
+                                        "type": "string",
+                                        "example": "ArchSmart Realty"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Profile updated"
+                                        },
+                                        "user": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/forgot-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Request password reset link",
+                "description": "Send password reset email to registered email address",
+                "operationId": "63ab744a29ae838d228f61ae99fff41e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Reset link sent successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Password reset link sent!"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Unable to send reset link",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unable to send reset link."
+                                        },
+                                        "reason": {
+                                            "type": "string",
+                                            "example": "User not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/reset-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Reset password with token",
+                "description": "Reset user password using token from email",
+                "operationId": "e741dabf187ce180514beb87a99f8d60",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "token",
+                                    "email",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "example": "abcdef123456..."
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "newpassword123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "newpassword123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password reset successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Password reset successfully!"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid token or email",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid or expired reset token."
+                                        },
+                                        "reason": {
+                                            "type": "string",
+                                            "example": "Token expired"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "User": {
+                "title": "User",
+                "description": "User model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "john@example.com"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "admin",
+                            "agent",
+                            "user"
+                        ],
+                        "example": "user"
+                    },
+                    "is_agent": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "is_admin": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "is_approved": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "+1234567890",
+                        "nullable": true
+                    },
+                    "bio": {
+                        "type": "string",
+                        "example": "Experienced real estate agent",
+                        "nullable": true
+                    },
+                    "company": {
+                        "type": "string",
+                        "example": "ArchSmart Realty",
+                        "nullable": true
+                    },
+                    "profile_picture": {
+                        "type": "string",
+                        "example": "profile_pictures/user1.jpg",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-01-01T00:00:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-01-01T00:00:00Z"
+                    }
+                },
+                "type": "object"
+            },
+            "Property": {
+                "title": "Property",
+                "description": "Property model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Luxury Villa in Downtown"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Beautiful 5 bedroom villa with pool"
+                    },
+                    "address": {
+                        "type": "string",
+                        "example": "123 Main St, City"
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 500000
+                    },
+                    "bedrooms": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "bathrooms": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "area": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 3500
+                    },
+                    "property_type": {
+                        "type": "string",
+                        "enum": [
+                            "house",
+                            "apartment",
+                            "villa",
+                            "land",
+                            "commercial"
+                        ],
+                        "example": "villa"
+                    },
+                    "listing_type": {
+                        "type": "string",
+                        "enum": [
+                            "sale",
+                            "rent"
+                        ],
+                        "example": "sale"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "approved",
+                            "rejected"
+                        ],
+                        "example": "approved"
+                    },
+                    "featured": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "images": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "properties/image1.jpg",
+                            "properties/image2.jpg"
+                        ]
+                    },
+                    "agent_id": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "agent": {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "BlogPost": {
+                "title": "Blog Post",
+                "description": "Blog post model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "10 Tips for First-Time Home Buyers"
+                    },
+                    "slug": {
+                        "type": "string",
+                        "example": "10-tips-first-time-home-buyers-abc123"
+                    },
+                    "content": {
+                        "type": "string",
+                        "example": "<p>Blog content with HTML...</p>"
+                    },
+                    "excerpt": {
+                        "type": "string",
+                        "example": "Learn essential tips...",
+                        "nullable": true
+                    },
+                    "featured_image": {
+                        "type": "string",
+                        "example": "https://example.com/image.jpg",
+                        "nullable": true
+                    },
+                    "author_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "author": {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "real-estate",
+                            "tips",
+                            "buying"
+                        ]
+                    },
+                    "views": {
+                        "type": "integer",
+                        "example": 150
+                    },
+                    "published_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Inquiry": {
+                "title": "Inquiry",
+                "description": "Customer inquiry model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Jane Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "jane@example.com"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "+1234567890"
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "I'm interested in property #123"
+                    },
+                    "property_id": {
+                        "type": "integer",
+                        "example": 123,
+                        "nullable": true
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "new"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Consultation": {
+                "title": "Consultation",
+                "description": "Consultation request model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Smith"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "john@example.com"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "+1234567890"
+                    },
+                    "service": {
+                        "type": "string",
+                        "example": "Smart Home Installation"
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Need consultation for smart home"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ValidationError": {
+                "title": "Validation Error",
+                "description": "Validation error response",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "The given data was invalid."
+                    },
+                    "errors": {
+                        "type": "object",
+                        "example": {
+                            "email": [
+                                "The email field is required."
+                            ]
+                        },
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorResponse": {
+                "title": "Error Response",
+                "description": "Generic error response",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "An error occurred"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "description": "Enter token in format: Bearer {token}",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "User authentication endpoints"
+        }
+    ]
+}
