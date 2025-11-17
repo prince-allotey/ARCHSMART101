@@ -32,7 +32,10 @@ export default function AdminLogin() {
   return (
     <>
       {/* If already authenticated and not admin, keep them away from admin login */}
-      {!loading && user && user.role !== "admin" && <Navigate to={user.role === "agent" ? "/agent/dashboard" : "/"} replace />}
+      {/* If authenticated but not admin, send to their dashboard */}
+      {!loading && user && user.role !== "admin" && (
+        <Navigate to={user.role === "agent" ? "/agent/dashboard" : "/user/dashboard"} replace />
+      )}
       {/* If already authenticated as admin, send to admin dashboard */}
       {!loading && user && user.role === "admin" && <Navigate to="/dashboard" replace />}
 

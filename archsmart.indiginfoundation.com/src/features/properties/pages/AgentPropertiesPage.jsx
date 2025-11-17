@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { MapPin, Home, BedDouble, Bath, User, Phone, Mail, Loader2, ArrowLeft } from "lucide-react";
 import api from "../../../api/axios";
 import { useAuth } from "../../../contexts/AuthContext";
-import { BACKEND_ORIGIN } from "../../../api/config";
+import { BACKEND_ORIGIN, assetUrl } from "../../../api/config";
 
 const AgentPropertiesPage = () => {
   const { agentId } = useParams();
@@ -12,15 +12,8 @@ const AgentPropertiesPage = () => {
   const [agent, setAgent] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Resolve image path similar to PropertiesSection
-  const resolveImage = (path) => {
-    if (!path) return '/images/properties/placeholder.jpg';
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    if (path.startsWith('/storage/')) return `${BACKEND_ORIGIN}${path}`;
-    if (path.startsWith('storage/')) return `${BACKEND_ORIGIN}/${path.startsWith('/') ? path : path}`;
-    // If backend stored full Storage::url output it may include /storage already
-    return path;
-  };
+  // Resolve image path - normalize strings/objects in-place when rendering
+  const resolveImage = (path) => path || null;
 
   useEffect(() => {
     const loadProperties = async () => {
@@ -95,11 +88,6 @@ const AgentPropertiesPage = () => {
                       <Mail className="w-4 h-4" /> {agent.email}
                     </a>
                   )}
-                  {agent.phone && (
-                    <a href={`tel:${agent.phone}`} className="flex items-center gap-1 hover:text-blue-600">
-                      <Phone className="w-4 h-4" /> {agent.phone}
-                    </a>
-                  )}
                 </div>
                 {agent.bio && (
                   <p className="text-gray-600 mt-3 max-w-2xl">{agent.bio}</p>
@@ -128,20 +116,31 @@ const AgentPropertiesPage = () => {
                 to={`/properties/${property.id}`}
                 className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow overflow-hidden"
               >
-                {property.images && property.images.length > 0 ? (
-                  <div className="h-48 overflow-hidden">
-                    <img
-                      src={resolveImage(property.images[0])}
-                      alt={property.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      onError={(e) => { e.currentTarget.src = '/images/properties/placeholder.jpg'; }}
-                    />
-                  </div>
-                ) : (
-                  <div className="h-48 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                    <Home className="w-16 h-16 text-gray-400" />
-                  </div>
-                )}
+                {(() => {
+                  const raw = (Array.isArray(property.image_urls) && property.image_urls.length) ? property.image_urls : (Array.isArray(property.images) ? property.images : []);
+                  const imgs = raw.map(it => (typeof it === 'string' ? it : (it && (it.url || it.path || it.filename) ? (it.url || it.path || it.filename) : null))).filter(Boolean);
+                  const first = Array.from(new Set(imgs))[0];
+                  return first ? (
+                    <div className="h-48 overflow-hidden">
+                      <img
+                        src={assetUrl(first)}
+                        alt={property.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          const img = e.currentTarget;
+                          if (img.dataset.__fallbackApplied) return;
+                          img.dataset.__fallbackApplied = '1';
+                          img.onerror = null;
+                          img.src = assetUrl('/properties/placeholder.jpg');
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-48 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                      <Home className="w-16 h-16 text-gray-400" />
+                    </div>
+                  );
+                })()}
 
                 <div className="p-4">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">

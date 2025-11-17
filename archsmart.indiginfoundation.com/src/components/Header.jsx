@@ -5,7 +5,14 @@ import { Menu, X, Home, Sparkles, GraduationCap, BookOpen, LogIn, UserPlus, Layo
 
 export default function Header({ activeSection, onSectionChange }) {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  // Guard useAuth call so HMR won't crash when provider is briefly unavailable.
+  let _auth;
+  try {
+    _auth = useAuth();
+  } catch (e) {
+    _auth = { user: null, logout: () => {} };
+  }
+  const { user, logout } = _auth;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -35,7 +42,8 @@ export default function Header({ activeSection, onSectionChange }) {
     if (!user) return navigate("/login");
     if (user.role === "admin") return navigate("/dashboard");
     if (user.role === "agent") return navigate("/agent/dashboard");
-    navigate("/");
+    // Default user route
+    navigate("/user/dashboard");
   };
 
   return (

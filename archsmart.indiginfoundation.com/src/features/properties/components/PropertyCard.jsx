@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { assetUrl } from "../../api/config";
 import { BedDouble, MapPin, Home, Heart } from "lucide-react";
 
 const PropertyCard = ({ property, onViewDetails }) => {
@@ -21,26 +22,49 @@ const PropertyCard = ({ property, onViewDetails }) => {
 
   const backendOrigin = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
   const resolveImage = () => {
-    const list = (Array.isArray(property.image_urls) && property.image_urls.length)
+    const raw = (Array.isArray(property.image_urls) && property.image_urls.length)
       ? property.image_urls
       : (Array.isArray(property.images) ? property.images : []);
-    const first = list[0];
-    if (!first) return null;
-    if (/^https?:\/\//i.test(first)) return first;
-    if (first.startsWith('/storage/')) return `${backendOrigin}${first}`;
-    if (!first.startsWith('/')) return `${backendOrigin}/storage/${first}`;
-    return first;
+    // Normalize entries (string or object) and dedupe
+    const normalizeImages = (arr) => {
+      if (!Array.isArray(arr)) return [];
+      const imgs = arr
+        .map((it) => {
+          if (!it) return null;
+          if (typeof it === 'string') return it;
+          // common object shapes from APIs
+          if (it.url) return it.url;
+          if (it.path) return it.path;
+          if (it.filename) return it.filename;
+          return null;
+        })
+        .filter(Boolean);
+      // Resolve to final URLs and dedupe by the resolved URL to avoid duplicate final src
+  // keep the raw mapped paths here and let the JSX call `assetUrl(...)` once
+  const resolved = imgs.map(i => i);
+      // debug
+      // eslint-disable-next-line no-console
+      console.debug('[PropertyCard] property', property.id, 'raw', imgs, 'resolved', resolved);
+      return Array.from(new Set(resolved));
+    };
+    return normalizeImages(raw)[0] || null;
   };
 
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 relative group">
       <div className="relative">
         {resolveImage() ? (
-          <img
-            src={resolveImage()}
+            <img
+                src={assetUrl(resolveImage())}
             alt={property.title}
             className="w-full h-56 object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => { e.currentTarget.src = '/images/properties/placeholder.jpg'; }}
+            onError={(e) => {
+              const img = e.currentTarget;
+              if (img.dataset.__fallbackApplied) return;
+              img.dataset.__fallbackApplied = '1';
+              img.onerror = null;
+              img.src = assetUrl('/properties/placeholder.jpg');
+            }}
           />
         ) : (
           <div className="w-full h-56 bg-gray-200 flex items-center justify-center text-gray-500">

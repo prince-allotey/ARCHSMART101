@@ -17,11 +17,10 @@ export interface Property {
     agency: string;
   };
   description: string;
-  area?: string;          
-  features?: string[];   
-  isSmartHome?: boolean;   
+  area?: string;
+  features?: string[];
+  isSmartHome?: boolean;
 }
-
 
 export interface BlogPost {
   id: string;
@@ -41,7 +40,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'editor' | 'user';
+  role: 'admin' | 'Agent' | 'user';
   avatar?: string;
 }
 

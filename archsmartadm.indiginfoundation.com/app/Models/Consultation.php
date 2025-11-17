@@ -14,5 +14,8 @@ class Consultation extends Model
         'email',
         'phone',
         'message',
+        'status',
+        'response_message',
+        'responded_at',
     ];
 }

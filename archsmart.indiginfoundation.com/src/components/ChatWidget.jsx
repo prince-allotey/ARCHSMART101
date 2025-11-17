@@ -18,9 +18,18 @@ const waitForTawk = (cb) => {
 const isDashboardRoute = (pathname) => pathname.startsWith('/dashboard') || pathname.startsWith('/agent');
 
 export default function ChatWidget() {
-  const { user } = useAuth();
+  // Keep hook order stable even if AuthProvider is not yet mounted during HMR.
+  // Call location/ref hooks first, then try to read auth; if missing, fall back to guest.
   const location = useLocation();
   const hasAttemptedInject = useRef(false);
+  let auth;
+  try {
+    auth = useAuth();
+  } catch (e) {
+    // Not mounted within AuthProvider yet (HMR / hot reload race). Fall back to guest.
+    auth = { user: null };
+  }
+  const { user } = auth;
 
   // One-time (lazy) script injection
   useEffect(() => {
@@ -59,14 +68,25 @@ export default function ChatWidget() {
       }
     };
 
-    // Lazy load after small delay or first interaction
-    const timeout = setTimeout(inject, 5000);
+  // Lazy load after small delay or first interaction. Reduced fallback delay to 1s to improve perceived responsiveness.
+    // Prefer requestIdleCallback when available so we run the injection during browser idle periods.
+    const idleHandle = typeof window !== 'undefined' && window.requestIdleCallback
+      ? window.requestIdleCallback(inject, { timeout: 1000 })
+      : setTimeout(inject, 1000);
     const onFirstInteraction = () => { inject(); cleanup(); };
     const cleanup = () => {
       document.removeEventListener('scroll', onFirstInteraction);
       document.removeEventListener('mousemove', onFirstInteraction);
       document.removeEventListener('keydown', onFirstInteraction);
-      clearTimeout(timeout);
+      try {
+        if (typeof window !== 'undefined' && window.cancelIdleCallback && idleHandle && typeof idleHandle === 'number') {
+          window.cancelIdleCallback(idleHandle);
+        } else {
+          clearTimeout(idleHandle);
+        }
+      } catch (e) {
+        clearTimeout(idleHandle);
+      }
     };
     document.addEventListener('scroll', onFirstInteraction, { once: true });
     document.addEventListener('mousemove', onFirstInteraction, { once: true });

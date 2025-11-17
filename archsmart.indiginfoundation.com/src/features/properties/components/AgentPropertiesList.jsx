@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getAgentProperties, deleteProperty } from "../../../api/agentApi";
+import { assetUrl } from "../../../api/config";
 import { useNavigate } from "react-router-dom";
 import toast from 'react-hot-toast';
 import { Trash2, Clock, CheckCircle, XCircle, Eye, BedDouble, Bath, Home } from "lucide-react";
@@ -71,15 +72,14 @@ export default function AgentPropertiesList({ refreshSignal }) {
   return (
     <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
       {items.map((p) => {
-        const backendOrigin = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-        const firstImage = Array.isArray(p.image_urls) && p.image_urls.length ? p.image_urls[0] : (Array.isArray(p.images) ? p.images[0] : null);
-        const resolveImage = () => {
-          if (!firstImage) return null;
-            if (/^https?:\/\//i.test(firstImage)) return firstImage;
-            if (firstImage.startsWith('/storage/')) return `${backendOrigin}${firstImage}`;
-            if (!firstImage.startsWith('/')) return `${backendOrigin}/storage/${firstImage}`;
-            return firstImage;
-        };
+  const backendOrigin = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+  const raw = (Array.isArray(p.image_urls) && p.image_urls.length) ? p.image_urls : (Array.isArray(p.images) ? p.images : []);
+  const imgs = raw.map(it => (typeof it === 'string' ? it : (it && (it.url || it.path || it.filename) ? (it.url || it.path || it.filename) : null))).filter(Boolean);
+  const resolved = imgs.map(i => assetUrl(i));
+  // eslint-disable-next-line no-console
+  console.debug('[AgentPropertiesList] property', p.id, 'raw', imgs, 'resolved', resolved);
+  const first = Array.from(new Set(resolved))[0];
+  const resolveImage = () => first || null;
         return (
         <div key={p.id} className="border rounded-lg p-4 bg-gradient-to-br from-white to-gray-50 hover:shadow-md transition-shadow">
           <div className="flex items-start justify-between mb-2">
@@ -90,10 +90,16 @@ export default function AgentPropertiesList({ refreshSignal }) {
               </p>
               {resolveImage() && (
                 <img
-                  src={resolveImage()}
+                  src={assetUrl(resolveImage())}
                   alt={p.title}
                   className="w-full h-40 object-cover rounded mt-3"
-                  onError={(e)=>{e.currentTarget.src='/images/properties/placeholder.jpg';}}
+                  onError={(e) => {
+                    const img = e.currentTarget;
+                    if (img.dataset.__fallbackApplied) return;
+                    img.dataset.__fallbackApplied = '1';
+                    img.onerror = null;
+                    img.src = assetUrl('/properties/placeholder.jpg');
+                  }}
                 />
               )}
               

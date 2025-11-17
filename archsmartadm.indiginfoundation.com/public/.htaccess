@@ -1,11 +1,24 @@
 <IfModule mod_headers.c>
     # CORS Headers for Frontend Communication
-    Header always set Access-Control-Allow-Origin "https://archsmart.indiginfoundation.com"
-    Header always set Access-Control-Allow-Credentials "true"
-    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, X-CSRF-TOKEN, Accept, Origin"
-    Header always set Access-Control-Expose-Headers "Authorization, Content-Type, X-CSRF-TOKEN"
-    Header always set Access-Control-Max-Age "3600"
+    # NOTE: Removing the static Access-Control-Allow-Origin header so
+    # Laravel's CORS middleware (config/cors.php) can correctly echo the
+    # request origin or use the ALLOWED_ORIGINS list. A static header here
+    # caused mismatches during development (requests from http://localhost:5173).
+    # If you need to re-enable a server-level header, ensure it matches the
+    # active environment or use dynamic handling in the webserver.
+    # NOTE: Removed server-level Access-Control headers to avoid conflicts with
+    # Laravel's CORS middleware. All CORS headers should be emitted by the
+    # application (config/cors.php) so they can be validated against
+    # ALLOWED_ORIGINS and SANCTUM stateful domains.
+    # Defensive: remove any Access-Control headers injected by the server
+    # (e.g., hosting control panels or vhost configs). This ensures Laravel's
+    # CORS middleware is the only source of truth for CORS headers.
+    Header unset Access-Control-Allow-Origin
+    Header unset Access-Control-Allow-Credentials
+    Header unset Access-Control-Allow-Methods
+    Header unset Access-Control-Allow-Headers
+    Header unset Access-Control-Expose-Headers
+    Header unset Access-Control-Max-Age
 </IfModule>
 
 <IfModule mod_rewrite.c>
@@ -15,9 +28,11 @@
 
     RewriteEngine On
     
-    # Handle preflight OPTIONS requests immediately
-    RewriteCond %{REQUEST_METHOD} OPTIONS
-    RewriteRule ^(.*)$ $1 [R=204,L]
+    # Previously we handled preflight at the webserver level which prevented
+    # Laravel's CORS middleware from adding the appropriate headers. Let
+    # Laravel handle OPTIONS requests so the middleware can respond.
+    #RewriteCond %{REQUEST_METHOD} OPTIONS
+    #RewriteRule ^(.*)$ $1 [R=204,L]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .

@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
+import { resolveUploadedUrl, assetUrl } from '../../../api/config';
+import PUBLIC_BLOG_IMAGES from '../../../data/publicBlogImages.json';
 import { createBlog, updateBlog } from "../../../api/blogApi";
 import toast from "react-hot-toast";
 import { FileImage, Send, X } from "lucide-react";
@@ -21,6 +24,7 @@ export default function AdminBlogFormSimple({
   const [imagePreview, setImagePreview] = useState(null);
   const [status, setStatus] = useState("published");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (mode === "edit" && initialData) {
@@ -30,8 +34,55 @@ export default function AdminBlogFormSimple({
       setCategory(initialData.category || "real-estate");
       setStatus(initialData.status || "draft");
       if (initialData.image) {
-        const src = typeof initialData.image === "string" ? initialData.image : null;
-        setImagePreview(src || null);
+        // Accept string paths, absolute URLs or objects with .url
+        let raw = null;
+        if (typeof initialData.image === 'string') raw = initialData.image;
+        else if (typeof initialData.image === 'object' && initialData.image?.url) raw = initialData.image.url;
+
+        // Resolve into an accessible URL (routes storage paths through media API when needed)
+        const resolved = raw ? resolveUploadedUrl(raw) || assetUrl(raw) : null;
+
+        // Append a simple cache-bust using updated_at/published_at if available so previews reflect recent changes
+        const ts = initialData.updated_at || initialData.published_at || null;
+        const finalUrl = resolved && ts ? `${resolved}${resolved.includes('?') ? '&' : '?'}t=${encodeURIComponent(ts)}` : resolved;
+
+        // Verify the resolved URL is reachable (HEAD) — if backend file missing, fall back to frontend assetUrl()
+        if (typeof window !== 'undefined' && finalUrl) {
+          (async () => {
+            try {
+              const controller = new AbortController();
+              const timeout = setTimeout(() => controller.abort(), 3000);
+              const resp = await fetch(finalUrl, {
+                method: 'HEAD',
+                mode: 'cors',
+                credentials: 'include',
+                signal: controller.signal,
+              });
+              clearTimeout(timeout);
+              if (resp && resp.ok) {
+                setImagePreview(finalUrl);
+                return;
+              }
+            } catch (e) {
+              // ignore and fallthrough to fallback below
+            }
+                // Fallback to frontend static asset URL (if available) or try the public images manifest
+                let fallback = assetUrl(raw || '') || null;
+                try {
+                  const parts = (raw || '').toString().split('/');
+                  const filename = parts[parts.length - 1] || raw;
+                  const clean = filename.split('?')[0].split('#')[0];
+                  if ((!fallback || fallback === '') && Array.isArray(PUBLIC_BLOG_IMAGES) && PUBLIC_BLOG_IMAGES.includes(clean)) {
+                    fallback = `/images/blogs/${clean}`;
+                  }
+                } catch (err) {
+                  // ignore
+                }
+                setImagePreview(fallback);
+          })();
+        } else {
+          setImagePreview(finalUrl || null);
+        }
       }
     }
   }, [mode, initialData]);
@@ -59,16 +110,40 @@ export default function AdminBlogFormSimple({
       fd.append("excerpt", excerpt);
       fd.append("content", content);
       fd.append("category", category);
-      fd.append("status", status);
+      // Only allow setting status when creating a new post. For edits, do not force a publish
+      // — leave status unchanged unless an explicit admin workflow sets it elsewhere.
+      if (mode !== "edit") {
+        fd.append("status", status);
+      }
       if (imageFile) fd.append("image", imageFile);
 
-      if (mode === "edit" && postId) {
-        await updateBlog(postId, fd);
+      // Determine effective id to use for updates. Prefer explicit postId prop,
+      // fall back to initialData.id (defensive for different payload shapes).
+      const effectiveId = postId || initialData?.id || null;
+
+      if (mode === "edit" && effectiveId) {
+        await updateBlog(effectiveId, fd);
         toast.success("Blog updated");
         if (onSaved) onSaved();
       } else {
-        await createBlog(fd);
+        const created = await createBlog(fd);
         toast.success("Blog post created");
+        // Persist the created post briefly to sessionStorage so the frontend can
+        // immediately show the uploaded image when navigating to the post page
+        try {
+          if (created && created.slug) {
+            sessionStorage.setItem(`recentBlog:${created.slug}`, JSON.stringify(created));
+            // Navigate to the created post immediately with router state so the
+            // BlogPostPage can render the image immediately without requiring a reupload.
+            try {
+              navigate(`/blog/${created.slug}`, { state: { post: created } });
+            } catch (e) {
+              // ignore navigation errors
+            }
+          }
+        } catch (err) {
+          // ignore storage errors
+        }
         setTitle("");
         setExcerpt("");
         setContent("");
@@ -76,7 +151,7 @@ export default function AdminBlogFormSimple({
         setImageFile(null);
         setImagePreview(null);
         setStatus("published");
-        if (onCreated) onCreated();
+        if (onCreated) onCreated(created);
       }
     } catch (err) {
       console.error(err);
@@ -171,28 +246,32 @@ export default function AdminBlogFormSimple({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-        <div className="flex gap-4">
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="radio"
-              value="draft"
-              checked={status === "draft"}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-            />
-            <span className="ml-2 text-sm text-gray-700">Draft</span>
-          </label>
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="radio"
-              value="published"
-              checked={status === "published"}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-            />
-            <span className="ml-2 text-sm text-gray-700">Publish</span>
-          </label>
-        </div>
+        {mode === "edit" ? (
+          <div className="text-sm text-gray-600">Current: <span className="font-medium">{status}</span></div>
+        ) : (
+          <div className="flex gap-4">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="radio"
+                value="draft"
+                checked={status === "draft"}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="ml-2 text-sm text-gray-700">Draft</span>
+            </label>
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="radio"
+                value="published"
+                checked={status === "published"}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="ml-2 text-sm text-gray-700">Publish</span>
+            </label>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-end gap-2 pt-4 border-t">

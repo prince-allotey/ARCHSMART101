@@ -14,26 +14,31 @@
 
 
 return [
-    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout', 'register', 'api/login', 'api/register', 'api/logout', 'api/health'],
+    'paths' => [
+        'api/*',
+        'sanctum/csrf-cookie',
+        'login',
+        'logout',
+        'register',
+        'api/login',
+        'api/register',
+        'api/logout',
+        'api/health',
+        'storage/*',
+    ],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'https://archsmart.indiginfoundation.com',
-        'http://archsmart.indiginfoundation.com',
-        'https://www.archsmart.indiginfoundation.com',
-    ],
+    'allowed_origins' => array_values(array_filter(array_map('trim', explode(',', env('ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173,http://127.0.0.1:5174,https://archsmart.indiginfoundation.com,https://archsmartadm.indiginfoundation.com'))))),
 
     'allowed_origins_patterns' => [
+        '#^https?://(?:localhost|127\.0\.0\.1)(:\d+)?$#',
         '#^https?://(www\.)?archsmart\.indiginfoundation\.com$#',
+        '#^https?://archsmartadm\.indiginfoundation\.com$#',
     ],
 
     'allowed_headers' => ['*'],
 
-    // Expose Authorization header to browser clients so frontend JS can read it
-    // (Insomnia/Postman are unaffected, but browsers require this for CORS).
     'exposed_headers' => ['Authorization', 'Content-Type', 'X-CSRF-TOKEN', 'X-XSRF-TOKEN'],
 
     'max_age' => 3600,

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useParams, Link } from "react-router-dom";
 import { fetchBlog, fetchBlogs } from "../../../api/blogApi";
-import { BACKEND_ORIGIN } from "../../../api/config";
+import { resolveUploadedUrl, assetUrl, BACKEND_ORIGIN } from "../../../api/config";
+import PUBLIC_BLOG_IMAGES from "../../../data/publicBlogImages.json";
 import { mockBlogPosts } from "../../../data/mockData";
 import Comments from "../components/Comments";
 
@@ -59,15 +61,50 @@ export default function BlogPostPage() {
 
   const enriched = React.useMemo(() => (post ? generateEnriched(post) : null), [post]);
 
+  const location = useLocation();
+
   useEffect(() => {
     let mounted = true;
     const load = async () => {
       setLoading(true); setError(null);
-      try { const data = await fetchBlog(slug); if (!mounted) return; setPost(data); }
-      catch (err) {
+      // If the router passed an initial post via location.state, use it immediately
+      try {
+        const initial = location?.state?.post || null;
+        if (initial) {
+          setPost(initial);
+        } else {
+          // Check sessionStorage for a recently created post (helps immediately show uploaded images)
+          try {
+            const cached = sessionStorage.getItem(`recentBlog:${slug}`);
+            if (cached) {
+              const parsed = JSON.parse(cached);
+              if (parsed && parsed.slug === slug) setPost(parsed);
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+      } catch (e) {}
+      try {
+        const data = await fetchBlog(slug);
+        if (!mounted) return;
+        setPost(data);
+        // Clear any cached recentBlog for this slug — backend is authoritative now
+        try { sessionStorage.removeItem(`recentBlog:${slug}`); } catch (e) {}
+      } catch (err) {
+        // Build a richer error object for the UI to display diagnostics
+  const attemptedUrl = `${BACKEND_ORIGIN}/api/blog-posts/${slug}`;
+        const status = err?.response?.status;
+        const body = err?.response?.data;
         const found = mockBlogPosts.find((b) => { const s = b.slug || slugify(b.title) || `mock-${b.id}`; return s === slug; });
-        if (found) setPost(found); else setError("Post not found");
-      } finally { if (mounted) setLoading(false); }
+        if (found) {
+          setPost(found);
+        } else {
+          setError({ message: status ? `Request failed with status ${status}` : 'Post not found', attemptedUrl, status, body });
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
     };
     load();
     (async () => { try { const all = await fetchBlogs(); if (!all || !Array.isArray(all)) return; const rel = all.filter((p) => (p.slug || p.id) !== slug).slice(0, 4); setRelated(rel); } catch (e) {} })();
@@ -99,16 +136,117 @@ export default function BlogPostPage() {
   const fallbackContent = `<h2>Exploring Ghana’s Evolving Property Landscape</h2><p>The Ghanaian real estate market has experienced a remarkable transformation over the past decade...</p>`;
   const displayContent = post?.content || fallbackContent;
 
-  const resolveImageUrl = (src) => {
-    if (!src) return null;
-    if (/^https?:\/\//i.test(src)) return src;
-    if (src.startsWith("/storage") || src.startsWith("storage/") || src.startsWith("blog/")) {
-      const path = src.startsWith("/") ? src : `/${src}`; return `${BACKEND_ORIGIN}${path}`; }
-    return src;
+  const resolveImageUrl = (src) => resolveUploadedUrl(src) || null;
+
+  const getImageForPost = (p) => {
+    try {
+      const raw = p?.image || p?.cover_image || null;
+      if (!raw) return assetUrl(fallbackBlogImage(p.id || p.slug || p.title, 1));
+      // extract filename
+      const parts = raw.split('/');
+      const last = parts[parts.length - 1] || raw;
+      const filename = last.split('?')[0].split('#')[0];
+      if (filename && Array.isArray(PUBLIC_BLOG_IMAGES) && PUBLIC_BLOG_IMAGES.includes(filename)) {
+        return `/images/blogs/${filename}`;
+      }
+      const resolved = resolveImageUrl(raw) || assetUrl(raw) || null;
+      if (!resolved) return assetUrl(fallbackBlogImage(p.id || p.slug || p.title, 1));
+      const ts = p.updated_at ? new Date(p.updated_at).getTime() : (p.published_at ? new Date(p.published_at).getTime() : Date.now());
+      // if the resolved URL points at backend media/storage, add small cache-bust
+      if (resolved.includes('/api/media/') || resolved.includes('/storage/') || resolved.includes('/api/')) {
+        return `${resolved}${resolved.includes('?') ? '&' : '?'}t=${ts}`;
+      }
+      return resolved;
+    } catch (e) {
+      return assetUrl(fallbackBlogImage(p.id || p.slug || p.title, 1));
+    }
+  };
+
+  const enhancedBlogImgError = (e, p) => {
+    try {
+      const img = e.currentTarget;
+      const attempts = parseInt(img.dataset.attempts || '0', 10) + 1;
+      img.dataset.attempts = attempts;
+      if (attempts > 3 || img.__fallbackApplied) {
+        img.__fallbackApplied = true;
+        img.src = assetUrl(fallbackBlogImage(p.id || p.slug || p.title, 1));
+        return;
+      }
+      const current = (img.src || '').toString();
+      const filename = current.split('/').pop().split('?')[0].split('#')[0];
+      if (attempts === 1) {
+        if (filename && Array.isArray(PUBLIC_BLOG_IMAGES) && PUBLIC_BLOG_IMAGES.includes(filename)) {
+          img.src = `/images/blogs/${filename}`;
+          return;
+        }
+        if (current.includes('/api/media/') && filename) {
+          img.src = `${BACKEND_ORIGIN}/storage/blogs/${filename}`;
+          return;
+        }
+      }
+      if (attempts === 2) {
+        if (filename) {
+          img.src = `${BACKEND_ORIGIN}/api/media/blogs/${filename}?t=${Date.now()}`;
+          return;
+        }
+      }
+      img.__fallbackApplied = true;
+      img.src = assetUrl(fallbackBlogImage(p.id || p.slug || p.title, 1));
+    } catch (err) {
+      try { e.currentTarget.src = assetUrl(fallbackBlogImage(p.id || p.slug || p.title, 1)); } catch (_) {}
+    }
+  };
+
+  const fallbackBlogImage = (key, offset = 1) => {
+    const choices = [1,2,3,4,5];
+    let seed = 0;
+    try {
+      const s = (key || '').toString();
+      for (let i = 0; i < s.length; i++) seed = (seed * 31 + s.charCodeAt(i)) >>> 0;
+    } catch (e) { seed = Date.now(); }
+    const idx = (seed + offset) % choices.length;
+    return `/images/blogs/blog${choices[idx]}.jpeg`;
+  };
+
+  const isRepairedDefault = (originalSrc, resolvedUrl) => {
+    try {
+      if (!originalSrc && !resolvedUrl) return true;
+      const a = (originalSrc || '').toString().toLowerCase();
+      const b = (resolvedUrl || '').toString().toLowerCase();
+      if (a.includes('blog1.jpeg') || b.includes('blog1.jpeg')) return true;
+    } catch (e) {}
+    return false;
   };
 
   if (loading) return <div className="py-40 text-center text-gray-500">Loading...</div>;
-  if (error) return <div className="py-40 text-center text-gray-500">{error}</div>;
+  if (error) {
+    // Render either a simple string error or a richer diagnostic object
+    if (typeof error === 'string') {
+      return <div className="py-40 text-center text-gray-500">{error}</div>;
+    }
+    return (
+      <div className="py-20 max-w-3xl mx-auto text-sm text-gray-700 bg-red-50 border border-red-100 rounded-md p-6">
+        <h3 className="text-lg font-semibold text-red-700 mb-2">Blog post could not be loaded</h3>
+        <p className="mb-2">{error.message || 'Post not found'}</p>
+        {error.attemptedUrl && (
+          <p className="mb-2">
+            Attempted API URL: <a className="text-blue-600 underline" href={error.attemptedUrl} target="_blank" rel="noreferrer">{error.attemptedUrl}</a>
+          </p>
+        )}
+        {error.status && <p className="mb-2">HTTP status: <strong>{error.status}</strong></p>}
+        {error.body && (
+          <div className="mb-2 text-xs text-gray-600">
+            <div className="font-medium">Response body:</div>
+            <pre className="whitespace-pre-wrap max-h-40 overflow-auto text-xs">{typeof error.body === 'string' ? error.body : JSON.stringify(error.body, null, 2)}</pre>
+          </div>
+        )}
+        <div className="mt-4 text-xs text-gray-600">
+          <div>If this is a 404, confirm the blog slug exists in the backend or use the admin to create the post.</div>
+          <div>If the backend is unreachable, ensure <code className="bg-gray-100 px-1 rounded">VITE_BACKEND_URL</code> / <code className="bg-gray-100 px-1 rounded">BACKEND_ORIGIN</code> is correct.</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white">
@@ -124,7 +262,12 @@ export default function BlogPostPage() {
         </header>
         {post.image && (
           <div className="mb-10 rounded-2xl overflow-hidden shadow">
-            <img src={resolveImageUrl(post.image)} alt={post.title} className="w-full h-[420px] object-cover" />
+            <img
+              src={getImageForPost(post)}
+              alt={post.title}
+              className="w-full h-[420px] object-cover"
+              onError={(e) => { try { if (!e.currentTarget.__fallbackApplied) { e.currentTarget.__fallbackApplied = true; e.currentTarget.src = assetUrl(fallbackBlogImage(post.id || post.slug || post.title, 1)); } } catch(_) { e.currentTarget.src = assetUrl(fallbackBlogImage(post.id || post.slug || post.title, 1)); } }}
+            />
           </div>
         )}
         <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: displayContent }} />

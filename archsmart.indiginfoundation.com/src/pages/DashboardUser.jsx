@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { assetUrl } from "../api/config";
 import DashboardLayout from "../features/dashboard/components/DashboardLayout";
 import api from "../api/axios";
 
@@ -50,11 +51,11 @@ export default function DashboardUser() {
                 return (
                   <li key={p.id} className="border rounded p-4 bg-gray-50">
                     {resolveImage() && (
-                      <img
+                        <img
                         src={resolveImage()}
                         alt={p.title}
                         className="w-full h-32 object-cover rounded mb-2"
-                        onError={(e)=>{e.currentTarget.src='/images/properties/placeholder.jpg';}}
+                        onError={(e)=>{ const img = e.currentTarget; if (img.dataset.__fallbackApplied) return; img.dataset.__fallbackApplied = '1'; img.onerror = null; img.src = assetUrl('/properties/placeholder.jpg'); }}
                       />
                     )}
                     <h3 className="font-semibold">{p.title || p.name || 'Unnamed'}</h3>

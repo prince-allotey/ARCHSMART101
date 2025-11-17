@@ -3,6 +3,7 @@ import DashboardLayout from "../features/dashboard/components/DashboardLayout";
 import TableCard from "../features/dashboard/components/TableCard";
 import { Check, X, Pencil } from "lucide-react";
 import axios from "../api/axios";
+import { assetUrl } from "../api/config";
 import toast from "react-hot-toast";
 
 export default function DashboardProperties() {
@@ -52,6 +53,10 @@ export default function DashboardProperties() {
     const prop = properties.find((p) => p.id === row.id);
     if (!prop) return;
     // Initialize a shallow copy for editing
+    const firstImage = (Array.isArray(prop.image_urls) && prop.image_urls.length)
+      ? prop.image_urls[0]
+      : (Array.isArray(prop.images) && prop.images.length ? (typeof prop.images[0] === 'string' ? prop.images[0] : prop.images[0]?.url || '') : null);
+
     setEditing({
       id: prop.id,
       title: prop.title || "",
@@ -63,6 +68,7 @@ export default function DashboardProperties() {
       size: prop.size ?? "",
       is_smart_home: !!prop.is_smart_home,
       description: prop.description || "",
+      previewImage: firstImage ? assetUrl(firstImage) : null,
     });
   };
 
@@ -139,6 +145,24 @@ export default function DashboardProperties() {
       variant: "danger",
       onClick: handleReject,
     },
+    {
+      label: "Delete",
+      icon: <X className="w-4 h-4" />,
+      variant: "danger",
+      onClick: async (row) => {
+        const id = row.id;
+        if (!id) return toast.error('Missing property id');
+        if (!window.confirm('Delete this property?')) return;
+        try {
+          await axios.delete(`/api/properties/${id}`);
+          toast.success('Property deleted');
+          fetchProperties();
+        } catch (err) {
+          console.error('Delete failed', err);
+          toast.error('Delete failed');
+        }
+      },
+    },
   ];
 
   return (
@@ -170,6 +194,12 @@ export default function DashboardProperties() {
                 <button onClick={closeEdit} className="text-gray-500 hover:text-gray-700">✕</button>
               </div>
               <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {editing.previewImage && (
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700">Current Image Preview</label>
+                    <img src={editing.previewImage} alt="preview" className="w-full h-48 object-cover rounded-md mt-2" />
+                  </div>
+                )}
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700">Title</label>
                   <input

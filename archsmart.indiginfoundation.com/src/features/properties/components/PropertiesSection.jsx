@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BedDouble, MapPin, Home, Heart, Loader2, Lock, ArrowRight, X } from "lucide-react";
 import api from "../../../api/axios";
-import { mockProperties } from "../../../data/mockData";
+import { assetUrl } from "../../../api/config";
 import { useAuth } from "../../../contexts/AuthContext";
 
 const PropertiesSection = ({ searchFilters }) => {
@@ -45,16 +45,16 @@ const PropertiesSection = ({ searchFilters }) => {
         const response = await api.get("/api/properties");
         const apiProperties = response.data || [];
         
-        // Use API properties if available, otherwise fallback to mock data
+        // Use API properties if available, otherwise set empty list
         if (apiProperties.length > 0) {
           setProperties(apiProperties);
         } else {
-          setProperties(mockProperties);
+          setProperties([]);
         }
       } catch (error) {
         console.error("Failed to fetch properties:", error);
-        // Fallback to mock properties if API fails
-        setProperties(mockProperties);
+  // On error, show empty state (do not render mock/demo data)
+  setProperties([]);
       } finally {
         setLoading(false);
       }
@@ -166,24 +166,35 @@ const PropertiesSection = ({ searchFilters }) => {
           >
             <div className="relative">
               {(() => {
-                const primary = (Array.isArray(property.image_urls) && property.image_urls.length)
-                  ? property.image_urls[0]
-                  : (Array.isArray(property.images) && property.images.length ? property.images[0] : null);
-                return primary ? (
+                const raw = (Array.isArray(property.image_urls) && property.image_urls.length) ? property.image_urls : (Array.isArray(property.images) ? property.images : []);
+                // Normalize entries to strings, then resolve final URL via assetUrl before deduping.
+                const imgs = raw
+                  .map(it => (typeof it === 'string' ? it : (it && (it.url || it.path || it.filename) ? (it.url || it.path || it.filename) : null)))
+                  .filter(Boolean);
+                const resolved = imgs.map(i => assetUrl(i));
+                // Debug: log raw vs resolved to help diagnose duplicate-image issues
+                // eslint-disable-next-line no-console
+                console.debug('[PropertiesSection] property', property.id, 'rawImages', imgs, 'resolved', resolved);
+                const first = Array.from(new Set(resolved))[0];
+                return first ? (
                   <img
-                  src={getImageUrl(primary)}
-                  alt={property.title}
-                  className="w-full h-56 object-cover transition-transform duration-300 group-hover:scale-105"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = '/images/properties/placeholder.jpg';
-                  }}
-                />
+                    src={first}
+                    alt={property.title}
+                    className="w-full h-56 object-cover transition-transform duration-300 group-hover:scale-105"
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      if (img.dataset.__fallbackApplied) return;
+                      img.dataset.__fallbackApplied = '1';
+                      img.onerror = null;
+                      img.src = assetUrl('/properties/placeholder.jpg');
+                    }}
+                  />
                 ) : (
-                <div className="w-full h-56 bg-gray-200 flex items-center justify-center text-gray-500">
-                  No Image Available
-                </div>
-              )})()}
+                  <div className="w-full h-56 bg-gray-200 flex items-center justify-center text-gray-500">
+                    No Image Available
+                  </div>
+                );
+              })()}
 
               {property.is_smart_home && (
                 <span className="absolute top-3 left-3 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">

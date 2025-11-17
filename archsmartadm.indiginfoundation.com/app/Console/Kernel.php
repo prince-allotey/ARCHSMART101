@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\GenerateVapidKeys::class,
         \App\Console\Commands\ResetAdmin::class,
         \App\Console\Commands\DeleteUser::class,
+        \App\Console\Commands\CheckBlogImages::class,
     ];
 
     /**

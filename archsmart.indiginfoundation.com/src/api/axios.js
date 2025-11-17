@@ -34,6 +34,40 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Central sanitizer: if we're sending FormData, remove empty password fields
+    try {
+      const fd = config.data;
+      if (fd && typeof FormData !== 'undefined' && fd instanceof FormData) {
+        // Only delete password fields when they are absent/empty (null/undefined/empty string).
+        // Do NOT touch file fields or other keys.
+        const pwd = fd.get('password');
+        const pwdc = fd.get('password_confirmation');
+
+        const isEmpty = (v) => v === null || v === undefined || (typeof v === 'string' && v.trim() === '');
+
+        if (isEmpty(pwd) && (pwdc === null || pwdc === undefined || isEmpty(pwdc))) {
+          // remove both if password is empty — avoids server-side "confirmed" validation when user didn't change password
+          fd.delete('password');
+          fd.delete('password_confirmation');
+        } else if (isEmpty(pwd) && !isEmpty(pwdc)) {
+          // If confirmation exists but password is empty, remove confirmation to avoid mismatch errors
+          fd.delete('password_confirmation');
+        }
+
+        // Local debug: enumerate but avoid logging in production; guard for environments without window
+        try {
+          if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+            for (const e of fd.entries()) console.debug('[axios FormData] ', e[0], e[1]);
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    } catch (err) {
+      // ignore sanitizer errors — don't break requests because of logging
+      try { console.warn('FormData sanitizer error', err); } catch (e) {}
+    }
+
     return config;
   },
   (error) => Promise.reject(error)

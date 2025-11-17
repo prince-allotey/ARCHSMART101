@@ -1,0 +1,74 @@
+{
+  "generated": "2025-11-15T10:41:04.934Z",
+  "report": {
+    "blogs": {
+      "totalFiles": 4,
+      "manifestCount": 0,
+      "extra": [
+        "blog1.jpeg",
+        "blog2.jpeg",
+        "blog3.jpeg",
+        "download.jpg"
+      ],
+      "missing": []
+    },
+    "properties": {
+      "totalFiles": 26,
+      "manifestCount": 0,
+      "extra": [
+        "1-1.png",
+        "1.jpg",
+        "2-1.png",
+        "3-1.png",
+        "4-1.png",
+        "affordable-3-bedroom-house-in-kumasi.jpg",
+        "affordable3bedroom-1.jpg",
+        "apartment2.jpg",
+        "blog2.jpg",
+        "cozy-2-bedroom.jpeg",
+        "executivemansion-1.jpg",
+        "kensington-heights-kumasi-1.jpg",
+        "land-for-sale-rubery-birmingham.jpg",
+        "land3.jpg",
+        "land4.jpg",
+        "land5.jpg",
+        "luxurybeachfront-1.jpeg",
+        "modern-apartment-in-airport-city.jpeg",
+        "primecommercialland-1.jpg",
+        "real-estate-in-ghana-2-1536x1025-1.jpg",
+        "smart-living.jpg",
+        "studioapartment-1.jpg",
+        "sucasa_properties_ghana_3-1.jpg",
+        "tardi-1.jpg",
+        "the-kensington-heights-1-1.jpg",
+        "villa1.webp"
+      ],
+      "missing": []
+    },
+    "services": {
+      "totalFiles": 7,
+      "manifestCount": 0,
+      "extra": [
+        "global-investment-opportunity.jpg",
+        "interior-design-1.webp",
+        "investment-consulting-1.webp",
+        "property-management-1.jpg",
+        "property-rentals.jpg",
+        "property-sales-1.jpg",
+        "smart-home-installation-1.jpg"
+      ],
+      "missing": []
+    },
+    "smartliving": {
+      "totalFiles": 4,
+      "manifestCount": 0,
+      "extra": [
+        "climate.webp",
+        "home-automation.webp",
+        "security-1.jpg",
+        "smart-lighting.jpg"
+      ],
+      "missing": []
+    }
+  }
+}

@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Wifi, Shield, Thermometer, Lightbulb, ArrowRight } from "lucide-react";
+import { assetUrl, resolveUploadedUrl } from "../../../api/config";
 
 export const SmartLivingSection = () => {
   const smartFeatures = [
@@ -9,32 +10,36 @@ export const SmartLivingSection = () => {
       title: "Smart Lighting",
       description:
         "Automated lighting systems that adjust to your daily routine and save energy.",
-      image: "/images/smartliving/smart-lighting.jpg",
-      link: "/smart-lighting",
+    image: "/smartliving/smart-lighting.jpg",
+    link: "/smart-lighting",
+     
     },
     {
       icon: Shield,
       title: "Security Systems",
       description:
         "Advanced home security with smart locks, cameras, and monitoring.",
-      image: "/images/smartliving/Security.jpg",
-      link: "/security-systems",
+    image: "/smartliving/Security.jpg",
+    link: "/security-systems",
+     
     },
     {
       icon: Thermometer,
       title: "Climate Control",
       description:
         "Smart thermostats and HVAC systems for optimal comfort and efficiency.",
-      image: "/images/smartliving/climate.webp",
-      link: "/climate-control",
+    image: "/smartliving/climate.webp",
+    link: "/climate-control",
+   
     },
     {
       icon: Wifi,
       title: "Home Automation",
       description:
         "Integrated smart home systems controllable from your smartphone.",
-      image: "/images/smartliving/home-automation.webp",
-      link: "/home-automation",
+    image: "/smartliving/home-automation.webp",
+    link: "/home-automation",
+   
     },
   ];
 
@@ -62,9 +67,17 @@ export const SmartLivingSection = () => {
                 <div className="md:flex">
                   <div className="md:w-1/2 relative overflow-hidden">
                     <img
-                      src={feature.image}
+                      src={assetUrl(feature.image) || resolveUploadedUrl(feature.image)}
                       alt={`Smart Living - ${feature.title}`}
                       className="w-full h-48 md:h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        try {
+                          const img = e.currentTarget;
+                          if (img.__fallbackApplied) return;
+                          img.__fallbackApplied = true;
+                          img.src = assetUrl('/smartliving/home-automation.webp');
+                        } catch (err) {}
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   </div>
@@ -86,7 +99,7 @@ export const SmartLivingSection = () => {
 
                     <div className="mt-6">
                       <Link
-                        to={feature.link}
+                        to={feature.link || '#'}
                         className="inline-flex items-center text-blue-600 hover:text-blue-700 font-semibold transition-colors group/link"
                       >
                         <span>Learn More</span>

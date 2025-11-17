@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { mockProperties } from "../../../data/mockData";
+// Note: removed mockProperties import to avoid showing demo data when API fails
 import { MapPin, Home, BedDouble, Loader2, Heart, ChevronLeft, ChevronRight, ArrowLeft, Phone, Mail, User, AlertCircle, MessageSquare, PhoneCall, Eye, EyeOff, Clock } from "lucide-react";
 import api from "../../../api/axios";
 import toast from "react-hot-toast";
+import { assetUrl } from "../../../api/config";
+// images will be rendered with <img> using getImageUrl
 
 const SinglePropertyPage = () => {
   const { id } = useParams();
@@ -63,13 +65,9 @@ const SinglePropertyPage = () => {
         } else if (err.response?.status === 404) {
           toast.error("Property not found");
         } else {
-          // Fallback to mock data for development
-          const found = mockProperties.find((p) => p.id === parseInt(id));
-          if (found) {
-            setProperty(found);
-          } else {
-            toast.error("Failed to load property");
-          }
+          // Do not fallback to demo data - surface the error to the user instead
+          toast.error("Failed to load property");
+          setProperty(null);
         }
       } finally {
         setLoading(false);
@@ -87,13 +85,31 @@ const SinglePropertyPage = () => {
     localStorage.setItem("favorites", JSON.stringify(updated));
   };
 
+  // Helpers to normalize and dedupe image lists (handles string paths and object shapes)
+  const normalizeImages = (arr) => {
+    if (!Array.isArray(arr)) return [];
+    const mapped = arr
+      .map((it) => {
+        if (!it) return null;
+        if (typeof it === 'string') return it;
+        // common object shapes from APIs
+        if (it.url) return it.url;
+        if (it.path) return it.path;
+        if (it.filename) return it.filename;
+        return null;
+      })
+      .filter(Boolean);
+    // preserve order but remove exact duplicates
+    return Array.from(new Set(mapped));
+  };
+
   const nextImage = () => {
-    const images = property?.image_urls || property?.images || [];
+    const images = normalizeImages(property?.image_urls || property?.images || []);
     if (images.length) setImageIndex((prev) => (prev + 1) % images.length);
   };
 
   const prevImage = () => {
-    const images = property?.image_urls || property?.images || [];
+    const images = normalizeImages(property?.image_urls || property?.images || []);
     if (images.length) setImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
@@ -136,6 +152,11 @@ const SinglePropertyPage = () => {
     }
   };
 
+  useEffect(() => {
+    // Reset image index when property changes so first image is shown
+    setImageIndex(0);
+  }, [property?.id]);
+
   if (loading) {
     return (<div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin w-8 h-8 text-blue-600" /></div>);
   }
@@ -173,17 +194,14 @@ const SinglePropertyPage = () => {
       </div>
 
       {(() => {
-        const images = property.image_urls || property.images || [];
+        const images = normalizeImages(property.image_urls || property.images || []);
         return images.length > 0 && (
           <div className="relative max-w-6xl mx-auto px-4 mb-8">
-            <img 
-              src={getImageUrl(images[imageIndex])} 
-              alt={property.title} 
-              className="w-full h-[500px] object-cover rounded-2xl shadow-lg" 
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.style.display = 'none';
-              }}
+            <img
+              src={assetUrl(images[imageIndex])}
+              alt={property.title}
+              className="w-full h-[500px] object-cover rounded-2xl shadow-lg"
+              onError={(e) => { e.currentTarget.src = assetUrl('/properties/1.jpg'); }}
             />
             {images.length > 1 && (
               <>

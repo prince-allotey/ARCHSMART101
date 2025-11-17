@@ -2,6 +2,7 @@ import React, { useState, useRef, lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 import { AuthProvider } from "./contexts/AuthContext";
+import { useAuth } from "./contexts/AuthContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ChatWidget from "./components/ChatWidget";
@@ -40,6 +41,7 @@ const DashboardProperties = lazy(() => import("./pages/DashboardProperties"));
 const DashboardUsers = lazy(() => import("./pages/DashboardUsers"));
 const DashboardBlog = lazy(() => import("./pages/DashboardBlog"));
 const DashboardInquiries = lazy(() => import("./pages/DashboardInquiries"));
+const DashboardConsultations = lazy(() => import("./pages/DashboardConsultations"));
 const DashboardSettings = lazy(() => import("./pages/DashboardSettings"));
 const DashboardProfile = lazy(() => import("./pages/DashboardProfile"));
 
@@ -98,6 +100,20 @@ function MainContent({ activeSection, setActiveSection }) {
   }
 }
 
+function DashboardUserRoute() {
+  const { user } = useAuth();
+
+  if (user?.role === "admin") {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return (
+    <Suspense fallback={<div className="p-6">Loading…</div>}>
+      <DashboardUser />
+    </Suspense>
+  );
+}
+
 // -------------------- AppContent Component --------------------
 function AppContent() {
   const [activeSection, setActiveSection] = useState("home");
@@ -152,7 +168,7 @@ function AppContent() {
             path="/user/dashboard"
             element={
               <ProtectedRoute roles={["user", "agent", "admin"]}>
-                <Suspense fallback={<div className="p-6">Loading…</div>}><DashboardUser /></Suspense>
+                <DashboardUserRoute />
               </ProtectedRoute>
             }
           />
@@ -233,6 +249,14 @@ function AppContent() {
             element={
               <ProtectedRoute roles={["admin"]}>
                 <Suspense fallback={<div className="p-6">Loading…</div>}><DashboardInquiries /></Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/consultations"
+            element={
+              <ProtectedRoute roles={["admin"]}>
+                <Suspense fallback={<div className="p-6">Loading…</div>}><DashboardConsultations /></Suspense>
               </ProtectedRoute>
             }
           />

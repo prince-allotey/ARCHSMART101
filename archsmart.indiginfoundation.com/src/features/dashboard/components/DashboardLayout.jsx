@@ -15,8 +15,10 @@ import {
 	X,
 	ChevronDown,
 	MessageSquare,
+	Phone,
 } from "lucide-react";
 import { getNotifications, getUnreadCount, markAllRead, markRead } from "../../../api/notificationApi";
+import { resolveUploadedUrl, assetUrl } from "../../../api/config";
 
 export default function DashboardLayout({ children }) {
 	const { user, logout } = useAuth();
@@ -83,6 +85,7 @@ export default function DashboardLayout({ children }) {
 		{ to: "/dashboard/properties", label: "Properties", icon: Home },
 		{ to: "/dashboard/blog", label: "Blog Posts", icon: FileText },
 		{ to: "/dashboard/inquiries", label: "Inquiries", icon: MessageSquare },
+		{ to: "/dashboard/consultations", label: "Consultations", icon: Phone },
 		{ to: "/dashboard/users", label: "Users", icon: Users },
 		{ to: "/dashboard/settings", label: "Settings", icon: Settings },
 	];
@@ -153,12 +156,12 @@ export default function DashboardLayout({ children }) {
 				<div className="p-4 border-t border-gray-200">
 					<div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg mb-2">
 						{user?.profile_picture_url ? (
-							<img 
-								src={user.profile_picture_url} 
-								alt={user.name} 
-								className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
-							/>
-						) : (
+									<img 
+										src={resolveUploadedUrl(user.profile_picture_url) || assetUrl('/profile_pictures/placeholder.jpg')} 
+										alt={user.name} 
+										className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
+									/>
+								) : (
 							<div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
 								<User className="w-5 h-5 text-white" />
 							</div>
@@ -256,11 +259,11 @@ export default function DashboardLayout({ children }) {
 									className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
 								>
 									{user?.profile_picture_url ? (
-										<img 
-											src={user.profile_picture_url} 
-											alt={user.name} 
-											className="w-8 h-8 rounded-full object-cover border-2 border-blue-500"
-										/>
+											<img 
+												src={resolveUploadedUrl(user.profile_picture_url) || assetUrl('/profile_pictures/placeholder.jpg')} 
+												alt={user.name} 
+												className="w-8 h-8 rounded-full object-cover border-2 border-blue-500"
+											/>
 									) : (
 										<div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
 											<User className="w-4 h-4 text-white" />
@@ -278,9 +281,11 @@ export default function DashboardLayout({ children }) {
 										<div className="p-3 border-b border-gray-200 flex items-center gap-3">
 											{user?.profile_picture_url ? (
 												<img 
-													src={user.profile_picture_url} 
-													alt={user.name} 
-													className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
+													src={(function(){
+														return resolveUploadedUrl(user.profile_picture_url) || assetUrl('/profile_pictures/placeholder.jpg');
+													})()} 
+												alt={user.name} 
+												className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
 												/>
 											) : (
 												<div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">

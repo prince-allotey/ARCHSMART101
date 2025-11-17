@@ -4,6 +4,7 @@ import AgentPropertyForm from "../features/properties/components/AgentPropertyFo
 import AgentPropertiesList from "../features/properties/components/AgentPropertiesList";
 import { useAuth } from "../contexts/AuthContext";
 import { Phone, Mail, User, MapPin, Building2, TrendingUp, Camera } from "lucide-react";
+import { assetUrl, resolveUploadedUrl } from "../api/config";
 import api from "../api/axios";
 import toast from 'react-hot-toast';
 
@@ -15,6 +16,7 @@ export default function DashboardAgent() {
   const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0 });
   const [profilePicture, setProfilePicture] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [imageCheck, setImageCheck] = useState(null); // { url, status, headers, error }
 
   useEffect(() => {
     if (user) {
@@ -24,7 +26,8 @@ export default function DashboardAgent() {
         phone: user.phone || "",
         bio: user.bio || "",
       });
-      setPreviewUrl(user.profile_picture_url);
+      // force cache-busted preview so new uploads show immediately
+      setPreviewUrl(user.profile_picture_url ? resolveUploadedUrl(user.profile_picture_url) + `?t=${Date.now()}` : null);
     }
   }, [user]);
 
@@ -35,8 +38,8 @@ export default function DashboardAgent() {
         const properties = res.data || [];
         setStats({
           total: properties.length,
-          pending: properties.filter(p => p.status === 'pending').length,
-          approved: properties.filter(p => p.status === 'approved').length,
+          pending: properties.filter((p) => p.status === 'pending').length,
+          approved: properties.filter((p) => p.status === 'approved').length,
         });
       } catch (err) {
         console.error("Failed to fetch stats:", err);
@@ -69,20 +72,70 @@ export default function DashboardAgent() {
         formData.append('profile_picture', profilePicture);
       }
 
+      // Debug: enumerate FormData to inspect payload
+      try {
+        // Only emit detailed FormData logs in local development to avoid leaking values in production.
+        if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+          for (const pair of formData.entries()) {
+            console.debug('[agent profile submit]', pair[0], pair[1]);
+          }
+        }
+      } catch (err) {
+        try { console.debug('Could not enumerate FormData entries', err); } catch (e) {}
+      }
+
       const response = await api.post("/api/user", formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
       });
-      
-      console.log('Profile update response:', response.data);
+
+      try {
+        if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+          console.log('Profile update response:', response.data);
+        }
+      } catch (e) {}
       await refreshUser();
+      // fetch fresh user for cache-busted preview
+      try {
+  const fresh = (await api.get('/api/user')).data || {};
+  setPreviewUrl(fresh.profile_picture_url ? resolveUploadedUrl(fresh.profile_picture_url) + `?t=${Date.now()}` : null);
+      } catch (err) {
+  setPreviewUrl(user?.profile_picture_url ? resolveUploadedUrl(user.profile_picture_url) + `?t=${Date.now()}` : null);
+      }
+
+      // Local-only diagnostic: attempt to fetch the resolved image and store status/headers for an on-screen panel
+      try {
+        if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+          const freshUser = (await api.get('/api/user')).data || {};
+          const checkUrl = freshUser.profile_picture_url ? resolveUploadedUrl(freshUser.profile_picture_url) : null;
+          if (checkUrl) {
+            try {
+              const r = await fetch(checkUrl, { method: 'HEAD', mode: 'cors' });
+              const headersObj = {};
+              try { for (const [k,v] of r.headers.entries()) headersObj[k] = v; } catch(e) {}
+              setImageCheck({ url: checkUrl, status: r.status, headers: headersObj, error: null });
+            } catch (e) {
+              setImageCheck({ url: checkUrl, status: null, headers: null, error: String(e) });
+            }
+          }
+        }
+      } catch (e) {
+        // ignore diagnostics errors
+      }
+
       toast.success("Profile updated successfully");
       setEditMode(false);
       setProfilePicture(null);
     } catch (err) {
       console.error('Profile update error:', err.response?.data || err);
-      toast.error(err.response?.data?.message || "Failed to update profile");
+      const resp = err.response?.data;
+      if (resp && resp.errors) {
+        const messages = Object.values(resp.errors).flat().join(' \n');
+        toast.error(messages);
+      } else {
+        toast.error(resp?.message || "Failed to update profile");
+      }
     }
   };
 
@@ -150,7 +203,7 @@ export default function DashboardAgent() {
                       bio: user.bio || "",
                     });
                     setProfilePicture(null);
-                    setPreviewUrl(user.profile_picture_url);
+                    setPreviewUrl(user.profile_picture_url ? resolveUploadedUrl(user.profile_picture_url) + `?t=${Date.now()}` : null);
                   }}
                   className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition text-sm"
                 >
@@ -211,6 +264,21 @@ export default function DashboardAgent() {
               <p className="text-sm text-gray-600 capitalize">{user?.role}</p>
             </div>
           </div>
+          {/* Dev diagnostics panel (local only) */}
+          {imageCheck && (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) && (
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-gray-800">
+              <div className="font-medium mb-1">Dev image diagnostics</div>
+              <div className="break-words"><strong>URL:</strong> <a className="text-blue-600" href={imageCheck.url} target="_blank" rel="noreferrer">{imageCheck.url}</a></div>
+              <div><strong>Status:</strong> {imageCheck.status ?? 'error'}</div>
+              {imageCheck.error && <div className="text-red-600">Error: {imageCheck.error}</div>}
+              {imageCheck.headers && (
+                <div className="mt-2 text-xs text-gray-700">
+                  <div className="font-semibold">Headers:</div>
+                  <pre className="whitespace-pre-wrap">{JSON.stringify(imageCheck.headers, null, 2)}</pre>
+                </div>
+              )}
+            </div>
+          )}
           
           <div className="grid md:grid-cols-2 gap-4">
             <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">

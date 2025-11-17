@@ -34,8 +34,9 @@ export default function ResetPassword() {
       await ensureCsrf();
   // Correct API path (backend defines POST /api/reset-password)
   const { data } = await api.post("/api/reset-password", formData);
-      setMessage(data.message);
-      setTimeout(() => navigate("/login"), 2500);
+  setMessage(data.message);
+  // Shorter redirect delay so user isn't kept waiting unnecessarily.
+  setTimeout(() => navigate("/login"), 800);
     } catch (err) {
       setError(err.response?.data?.message || "Password reset failed");
     } finally {

@@ -14,6 +14,9 @@ export default function DashboardSettings() {
   // Password form state
   const [pwd, setPwd] = useState({ current_password: "", password: "", password_confirmation: "" });
   const [savingPwd, setSavingPwd] = useState(false);
+  // Keep password inputs readonly until user focuses them to avoid aggressive browser autofill
+  const [pwdInputsReadonly, setPwdInputsReadonly] = useState(true);
+  const [showPwdForm, setShowPwdForm] = useState(false);
 
   // Notification preferences (local only for now)
   const [prefs, setPrefs] = useState({ email: true, push: false });
@@ -38,6 +41,24 @@ export default function DashboardSettings() {
     });
 
     load();
+    // Reset password form state on mount to avoid stale saving state or browser autofill
+    setPwd({ current_password: "", password: "", password_confirmation: "" });
+    setSavingPwd(false);
+
+    // Keep inputs readonly until user interacts to reduce browser autofill chances.
+    setPwdInputsReadonly(true);
+
+    // Clear native DOM values shortly after mount to ensure React-controlled values stay empty.
+    setTimeout(() => {
+      try {
+        const passFields = document.querySelectorAll('input[type="password"]');
+        passFields.forEach((el) => {
+          if (el && el instanceof HTMLInputElement) el.value = '';
+        });
+      } catch (e) {
+        // ignore
+      }
+    }, 150);
   }, []);
 
   const onProfileChange = (e) => setProfile({ ...profile, [e.target.name]: e.target.value });
@@ -167,46 +188,90 @@ export default function DashboardSettings() {
               <Lock className="w-5 h-5 text-blue-600" />
               <h3 className="text-lg font-semibold text-gray-800">Change Password</h3>
             </div>
-            <form onSubmit={updatePassword} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
-                <input
-                  type="password"
-                  name="current_password"
-                  value={pwd.current_password}
-                  onChange={onPwdChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="••••••••"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={pwd.password}
-                    onChange={onPwdChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="••••••••"
-                  />
+            <div className="p-6">
+              {!showPwdForm ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-600">Click below to change your account password.</p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPwdForm(true);
+                        // when user chooses to show form, allow inputs to be editable
+                        setPwdInputsReadonly(false);
+                        setPwd({ current_password: "", password: "", password_confirmation: "" });
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
+                    >
+                      Change Password
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
-                  <input
-                    type="password"
-                    name="password_confirmation"
-                    value={pwd.password_confirmation}
-                    onChange={onPwdChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="••••••••"
-                  />
-                </div>
-              </div>
-              <button type="submit" disabled={savingPwd} className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60">
-                {savingPwd ? "Updating…" : "Update Password"}
-              </button>
-            </form>
+              ) : (
+                <form onSubmit={updatePassword} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                    <input
+                      type="password"
+                      name="current_password"
+                      value={pwd.current_password}
+                      onChange={onPwdChange}
+                      onFocus={() => setPwdInputsReadonly(false)}
+                      readOnly={pwdInputsReadonly}
+                      autoComplete="current-password"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                      <input
+                        type="password"
+                        name="password"
+                        value={pwd.password}
+                        onChange={onPwdChange}
+                        onFocus={() => setPwdInputsReadonly(false)}
+                        readOnly={pwdInputsReadonly}
+                        autoComplete="new-password"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+                      <input
+                        type="password"
+                        name="password_confirmation"
+                        value={pwd.password_confirmation}
+                        onChange={onPwdChange}
+                        onFocus={() => setPwdInputsReadonly(false)}
+                        readOnly={pwdInputsReadonly}
+                        autoComplete="new-password"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <button type="submit" disabled={savingPwd} className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60">
+                      {savingPwd ? "Updating…" : "Update Password"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPwdForm(false);
+                        setPwd({ current_password: "", password: "", password_confirmation: "" });
+                        setPwdInputsReadonly(true);
+                      }}
+                      className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
           </div>
 
           {/* Notification Settings */}

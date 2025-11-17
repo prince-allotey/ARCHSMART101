@@ -30,6 +30,15 @@ Route::get('/health', function () {
     ]);
 });
 
+// Serve profile pictures via API so CORS middleware runs for these requests.
+use App\Http\Controllers\MediaController;
+// Generic media endpoint for a few allowed folders. Filename can contain slashes.
+Route::get('/media/{folder}/{filename}', [MediaController::class, 'serve'])
+    ->where('folder', 'profile_pictures|properties|blogs|services|images')
+    ->where('filename', '.*');
+
+use App\Http\Controllers\Api\ImageRepairController;
+
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout']);
@@ -61,6 +70,11 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
 
     // 📰 Blog posts (admin)
     Route::get('/blog-posts', [BlogPostController::class, 'adminIndex']);
+    // Admin helper: scan for blog posts whose image file is missing
+    // Generic media scanner/repair endpoints. Use query param `type` (blogs|properties|profile_pictures|services)
+    Route::get('/missing-media', [ImageRepairController::class, 'missingMedia']);
+    Route::post('/repair-missing-media', [ImageRepairController::class, 'repairMissingBlogImages']);
+    Route::post('/repair-missing-media/{type}/{id}', [ImageRepairController::class, 'repairSingleMedia']);
 });
 
 /*
@@ -176,4 +190,8 @@ Route::prefix('inquiries')->group(function () {
 | 📞 CONSULTATIONS
 |--------------------------------------------------------------------------
 */
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    Route::get('/consultations', [ConsultationController::class, 'index']);
+    Route::put('/consultations/{consultation}', [ConsultationController::class, 'respond']);
+});
 Route::post('/consultations', [ConsultationController::class, 'store']);

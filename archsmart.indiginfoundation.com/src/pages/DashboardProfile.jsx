@@ -4,6 +4,7 @@ import { User, Mail, Phone, MapPin, Calendar, Camera } from "lucide-react";
 import api from "../api/axios";
 import toast from "react-hot-toast";
 import { useAuth } from "../contexts/AuthContext";
+import { assetUrl, resolveUploadedUrl } from "../api/config";
 
 export default function DashboardProfile() {
   const { user, refreshUser } = useAuth();
@@ -11,11 +12,13 @@ export default function DashboardProfile() {
   const [loading, setLoading] = useState(false);
   const [profilePicture, setProfilePicture] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [imageCheck, setImageCheck] = useState(null);
 
   useEffect(() => {
     if (user) {
       setForm((f) => ({ ...f, name: user.name || "", email: user.email || "" }));
-      setPreviewUrl(user.profile_picture_url);
+  // add a cache-busting query so newly uploaded pictures show immediately
+  setPreviewUrl(user.profile_picture_url ? resolveUploadedUrl(user.profile_picture_url) + `?t=${Date.now()}` : null);
     }
   }, [user]);
 
@@ -29,6 +32,14 @@ export default function DashboardProfile() {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  // When user selects a new profile picture, clear any typed password fields
+  // so they aren't accidentally submitted with the image update.
+  // This avoids the UX where a previously typed new password 'repeats' when saving a picture.
+  const handleFileChangeAndClearPassword = (e) => {
+    handleFileChange(e);
+    setForm((f) => ({ ...f, password: "", password_confirmation: "" }));
   };
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -49,21 +60,72 @@ export default function DashboardProfile() {
         formData.append('profile_picture', profilePicture);
       }
 
+      // Debug: enumerate FormData so we can inspect what's being sent
+      try {
+        // Only log FormData entries in local dev to avoid exposing values in production
+        if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+          for (const pair of formData.entries()) {
+            console.debug('[profile submit] ', pair[0], pair[1]);
+          }
+        }
+      } catch (err) {
+        try { console.debug('Could not enumerate FormData entries', err); } catch (e) {}
+      }
+
       const response = await api.post("/api/user", formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
       });
-      
-      console.log('Profile update response:', response.data);
+
+      try {
+        if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+          console.log('Profile update response:', response.data);
+        }
+      } catch (e) {}
+      // refresh user in context and set a cache-busted preview URL from the fresh server value
       await refreshUser();
+      try {
+  const fresh = (await api.get('/api/user')).data || {};
+  setPreviewUrl(fresh.profile_picture_url ? resolveUploadedUrl(fresh.profile_picture_url) + `?t=${Date.now()}` : null);
+      } catch (err) {
+        // fallback to context user (use cache-bust to encourage reload)
+  setPreviewUrl(user?.profile_picture_url ? resolveUploadedUrl(user.profile_picture_url) + `?t=${Date.now()}` : null);
+      }
+
+      // Local-only diagnostic: attempt to HEAD the resolved image URL and store status/headers for UI
+      try {
+        if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+          const freshUser = (await api.get('/api/user')).data || {};
+          const checkUrl = freshUser.profile_picture_url ? resolveUploadedUrl(freshUser.profile_picture_url) : null;
+          if (checkUrl) {
+            try {
+              const r = await fetch(checkUrl, { method: 'HEAD', mode: 'cors' });
+              const headersObj = {};
+              try { for (const [k,v] of r.headers.entries()) headersObj[k] = v; } catch(e) {}
+              setImageCheck({ url: checkUrl, status: r.status, headers: headersObj, error: null });
+            } catch (e) {
+              setImageCheck({ url: checkUrl, status: null, headers: null, error: String(e) });
+            }
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+
       toast.success("Profile updated");
       setForm((f) => ({ ...f, password: "", password_confirmation: "" }));
       setProfilePicture(null);
     } catch (e) {
       console.error('Profile update error:', e.response?.data || e);
-      const msg = e.response?.data?.message || "Update failed";
-      toast.error(msg);
+      const resp = e.response?.data;
+      if (resp && resp.errors) {
+        const messages = Object.values(resp.errors).flat().join(' \n');
+        toast.error(messages);
+      } else {
+        const msg = resp?.message || "Update failed";
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -103,13 +165,28 @@ export default function DashboardProfile() {
                   id="profile-upload"
                   type="file"
                   accept="image/*"
-                  onChange={handleFileChange}
+                  onChange={handleFileChangeAndClearPassword}
                   className="hidden"
                 />
               </div>
               <h2 className="text-xl font-bold text-gray-800">{user?.name || "—"}</h2>
               <p className="text-sm text-gray-500 capitalize">{user?.role || "user"}</p>
             </div>
+            {/* Dev diagnostics panel (local only) */}
+            {imageCheck && (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) && (
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-gray-800">
+                <div className="font-medium mb-1">Dev image diagnostics</div>
+                <div className="break-words"><strong>URL:</strong> <a className="text-blue-600" href={imageCheck.url} target="_blank" rel="noreferrer">{imageCheck.url}</a></div>
+                <div><strong>Status:</strong> {imageCheck.status ?? 'error'}</div>
+                {imageCheck.error && <div className="text-red-600">Error: {imageCheck.error}</div>}
+                {imageCheck.headers && (
+                  <div className="mt-2 text-xs text-gray-700">
+                    <div className="font-semibold">Headers:</div>
+                    <pre className="whitespace-pre-wrap">{JSON.stringify(imageCheck.headers, null, 2)}</pre>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Profile Details */}

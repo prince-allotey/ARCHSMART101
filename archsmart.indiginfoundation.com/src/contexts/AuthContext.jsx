@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
   if (userData.role === "admin") navigate("/dashboard");
   else if (userData.role === "agent") navigate("/agent/dashboard");
-  else navigate("/");
+  else navigate("/user/dashboard");
     } catch (err) {
       // Better logging for network / server errors and surface validation messages
       console.error("Login error:", err);
@@ -89,9 +89,9 @@ export const AuthProvider = ({ children }) => {
       if (token) localStorage.setItem("token", token);
       setUser(userData);
 
-      if (userData.role === "admin") navigate("/dashboard");
-      else if (userData.role === "agent") navigate("/agent/dashboard");
-      else navigate("/");
+  if (userData.role === "admin") navigate("/dashboard");
+  else if (userData.role === "agent") navigate("/agent/dashboard");
+  else navigate("/user/dashboard");
 
       // Attempt push subscription after successful login (non-blocking)
       try { await registerPush(); } catch (e) { console.warn('Push registration failed:', e?.message || e); }

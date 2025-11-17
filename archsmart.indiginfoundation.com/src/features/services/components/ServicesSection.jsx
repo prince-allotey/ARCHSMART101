@@ -11,14 +11,14 @@ import {
   Star,
   X
 } from 'lucide-react';
-
-import propertySalesImg from '/images/services/Property-Sales.jpg';
-import propertyRentalsImg from '/images/services/property-rentals.jpg';
-import smartHomeImg from '/images/services/Smart-Home-Installation.jpg';
-import interiorDesignImg from '/images/services/Interior-Design.webp';
-import investmentConsultingImg from '/images/services/Investment-Consulting.webp';
-import propertyManagementImg from '/images/services/Property-Management.jpg';
 import api from '../../../api/axios';
+
+const propertySalesImg = '/images/services/property-sales-1.jpg';
+const propertyRentalsImg = '/images/services/property-rentals.jpg';
+const smartHomeImg = '/images/services/smart-home-installation-1.jpg';
+const interiorDesignImg = '/images/services/interior-design-1.webp';
+const investmentConsultingImg = '/images/services/investment-consulting-1.webp';
+const propertyManagementImg = '/images/services/property-management-1.jpg';
 
 const ServicesSection = () => {
   const [activeService, setActiveService] = useState('property-sales');
@@ -295,6 +295,7 @@ const ServicesSection = () => {
                   src={activeServiceData.image}
                   alt={activeServiceData.title}
                   className="w-full h-64 lg:h-full object-cover"
+                  onError={(e) => { e.currentTarget.src = smartHomeImg; }}
                 />
               </div>
 

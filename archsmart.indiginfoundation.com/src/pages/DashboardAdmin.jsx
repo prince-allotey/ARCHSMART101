@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useCallback } from "react";
 import DashboardLayout from "../features/dashboard/components/DashboardLayout";
 import StatCard from "../features/dashboard/components/StatCard";
 import ChartCard from "../features/dashboard/components/ChartCard";
@@ -24,6 +24,31 @@ export default function DashboardAdmin() {
   });
 
   const [testPushEndpoint, setTestPushEndpoint] = useState("");
+  const [consultData, setConsultData] = useState({
+    total: 0,
+    items: [],
+    loading: true,
+  });
+
+  const formatDate = (value, includeTime = false) => {
+    if (!value) return "—";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "—";
+    return includeTime ? parsed.toLocaleString() : parsed.toLocaleDateString();
+  };
+
+  const fetchConsultations = useCallback(async () => {
+    setConsultData((prev) => ({ ...prev, loading: true }));
+    try {
+      const response = await axios.get("/api/consultations?limit=8");
+      const items = Array.isArray(response?.data?.data) ? response.data.data : [];
+      const total = typeof response?.data?.total === "number" ? response.data.total : items.length;
+      setConsultData({ total, items, loading: false });
+    } catch (error) {
+      console.error("Failed to load consultations:", error);
+      setConsultData((prev) => ({ ...prev, loading: false }));
+    }
+  }, []);
 
   useEffect(() => {
     // Try to detect an existing push subscription for test button enabling
@@ -73,12 +98,16 @@ export default function DashboardAdmin() {
     };
 
     fetchStats();
+    fetchConsultations();
     
     // Poll for updates every 30 seconds
-    const interval = setInterval(fetchStats, 30000);
+    const interval = setInterval(() => {
+      fetchStats();
+      fetchConsultations();
+    }, 30000);
     
     return () => clearInterval(interval);
-  }, [refresh]);
+  }, [refresh, fetchConsultations]);
 
   // Mock data for charts (similar to Light Bootstrap Dashboard)
   const propertyTypeData = [
@@ -106,54 +135,58 @@ export default function DashboardAdmin() {
   ];
 
   // Image diagnostics state
-  const [imageDiagnostics, setImageDiagnostics] = useState({ loading: true, items: [], checked: 0 });
+  const [imageDiagnostics, setImageDiagnostics] = useState({ loading: false, items: [], checked: 0 });
+  const [diagnosticsEnabled, setDiagnosticsEnabled] = useState(false);
 
-  useEffect(() => {
-    const runDiagnostics = async () => {
-      setImageDiagnostics(s => ({ ...s, loading: true }));
-      try {
-        // Fetch a limited set of properties for diagnostic (approved + pending)
-        const res = await axios.get('/api/properties/my').catch(() => ({ data: [] }));
-        const props = Array.isArray(res.data) ? res.data.slice(0, 12) : [];
-        // Prepare items with preliminary URLs
-        const origin = import.meta.env.VITE_BACKEND_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//archsmartadm.indiginfoundation.com` : '');
-        const normalize = (val) => {
-          if (!val) return null;
-          if (/^https?:\/\//i.test(val)) return val;
-          if (val.startsWith('/storage/')) return `${origin}${val}`;
-          if (!val.startsWith('/')) return `${origin}/storage/${val}`;
-          return val;
-        };
-        const expanded = props.map(p => {
-          const list = Array.isArray(p.image_urls) && p.image_urls.length ? p.image_urls : (Array.isArray(p.images) ? p.images : []);
-          const urls = list.map(normalize).filter(Boolean);
-          return { id: p.id, title: p.title, status: p.status, urls, results: [] };
-        });
-        setImageDiagnostics({ loading: false, items: expanded, checked: 0 });
-        // Sequentially test each image to avoid flooding server
-        let checkedCount = 0;
-        for (const item of expanded) {
-          const results = [];
-          for (const url of item.urls) {
-            const outcome = await new Promise(resolve => {
-              const img = new Image();
-              const timer = setTimeout(() => { resolve({ url, ok: false, reason: 'timeout' }); }, 8000);
-              img.onload = () => { clearTimeout(timer); resolve({ url, ok: true }); };
-              img.onerror = () => { clearTimeout(timer); resolve({ url, ok: false, reason: 'error' }); };
-              img.src = url;
-            });
-            results.push(outcome);
-          }
-          item.results = results;
-          checkedCount += item.urls.length;
-          setImageDiagnostics(s => ({ ...s, checked: checkedCount, items: [...expanded] }));
-        }
-      } catch (e) {
-        setImageDiagnostics({ loading: false, items: [], checked: 0 });
-      }
-    };
-    runDiagnostics();
-  }, []);
+  // Run diagnostics on demand (user action) to avoid long blocking loads on page render
+  const runDiagnostics = async () => {
+    setImageDiagnostics(s => ({ ...s, loading: true, items: [], checked: 0 }));
+    try {
+      // Fetch a limited set of properties for diagnostic (approved + pending)
+      const res = await axios.get('/api/properties/my').catch(() => ({ data: [] }));
+      const props = Array.isArray(res.data) ? res.data.slice(0, 12) : [];
+      // Prepare items with preliminary URLs
+      const origin = import.meta.env.VITE_BACKEND_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//archsmartadm.indiginfoundation.com` : '');
+      const normalize = (val) => {
+        if (!val) return null;
+        if (/^https?:\/\//i.test(val)) return val;
+        if (val.startsWith('/storage/')) return `${origin}${val}`;
+        if (!val.startsWith('/')) return `${origin}/storage/${val}`;
+        return val;
+      };
+      const expanded = props.map(p => {
+        const list = Array.isArray(p.image_urls) && p.image_urls.length ? p.image_urls : (Array.isArray(p.images) ? p.images : []);
+        const urls = list.map(normalize).filter(Boolean);
+        return { id: p.id, title: p.title, status: p.status, urls, results: [] };
+      });
+      setImageDiagnostics({ loading: false, items: expanded, checked: 0 });
+
+      // Now test images, but do not block page load — update results as they complete.
+      let checkedCount = 0;
+      const timeoutMs = 2000; // lower per-image timeout to keep UI responsive
+      const checkImage = (url) => new Promise(resolve => {
+        const img = new Image();
+        let done = false;
+        const timer = setTimeout(() => { if (!done) { done = true; resolve({ url, ok: false, reason: 'timeout' }); } }, timeoutMs);
+        img.onload = () => { if (!done) { done = true; clearTimeout(timer); resolve({ url, ok: true }); } };
+        img.onerror = () => { if (!done) { done = true; clearTimeout(timer); resolve({ url, ok: false, reason: 'error' }); } };
+        img.src = url;
+      });
+
+      // Kick off checks for each item concurrently but update state per-item when done.
+      await Promise.all(expanded.map(async (item) => {
+        const results = await Promise.all(item.urls.map((u) => checkImage(u)));
+        item.results = results;
+        checkedCount += item.urls.length;
+        setImageDiagnostics(s => ({ ...s, checked: checkedCount, items: [...expanded] }));
+      }));
+
+      // done
+      setImageDiagnostics(s => ({ ...s, loading: false }));
+    } catch (e) {
+      setImageDiagnostics({ loading: false, items: [], checked: 0 });
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -203,6 +236,71 @@ export default function DashboardAdmin() {
             color={stats.pushReady ? 'green' : 'gray'}
             footer={stats.pushReady ? 'Ready for test' : 'No subscription'}
           />
+        </div>
+
+        {/* Consulting Panel */}
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800">Consulting Requests</h2>
+              <p className="text-sm text-gray-500">Track recent consultation requests from customers.</p>
+            </div>
+            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
+              <span className="text-sm text-gray-500">{consultData.total} total requests</span>
+              <button
+                type="button"
+                onClick={fetchConsultations}
+                disabled={consultData.loading}
+                className="px-3 py-1 text-sm font-medium rounded bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:cursor-wait disabled:bg-gray-100 disabled:text-gray-400 transition"
+              >
+                Refresh
+              </button>
+            </div>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[{
+                label: "Total requests",
+                value: consultData.total,
+              }, {
+                label: "Recent records",
+                value: consultData.items.length,
+              }, {
+                label: "Latest received",
+                value: consultData.items[0] ? formatDate(consultData.items[0].created_at) : "—",
+              }].map((stat) => (
+                <div key={stat.label} className="rounded-lg border border-gray-100 bg-gray-50 p-4 text-center">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">{stat.label}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                </div>
+              ))}
+            </div>
+            {consultData.loading ? (
+              <div className="text-sm text-gray-500">Loading consultation requests…</div>
+            ) : consultData.items.length === 0 ? (
+              <div className="text-sm text-gray-500">No consultation requests available.</div>
+            ) : (
+              <div className="space-y-3">
+                {consultData.items.map((item) => (
+                  <div key={item.id} className="relative rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-base font-semibold text-gray-800">{item.name || "Anonymous"}</p>
+                        <p className="text-sm text-gray-500">
+                          {item.email}
+                          {item.phone ? ` · ${item.phone}` : ""}
+                        </p>
+                      </div>
+                      <span className="text-xs text-gray-400">{formatDate(item.created_at, true)}</span>
+                    </div>
+                    {item.message && (
+                      <p className="text-sm text-gray-600 mt-3 line-clamp-3">{item.message}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Charts Section - Light Bootstrap Style */}
@@ -299,9 +397,19 @@ export default function DashboardAdmin() {
 
         {/* Image Diagnostics */}
         <div className="bg-white rounded-lg shadow-md mt-6">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-800">Image Diagnostics</h2>
-            <p className="text-sm text-gray-500">Checks stored property image URLs for load success vs failure.</p>
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800">Image Diagnostics</h2>
+              <p className="text-sm text-gray-500">Checks stored property image URLs for load success vs failure.</p>
+            </div>
+            <div>
+              <button
+                onClick={async () => { setDiagnosticsEnabled(true); await runDiagnostics(); }}
+                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+              >
+                Run Diagnostics
+              </button>
+            </div>
           </div>
           <div className="p-6 space-y-4">
             {imageDiagnostics.loading && (

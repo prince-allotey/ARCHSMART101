@@ -1,0 +1,174 @@
+{
+  "applied": true,
+  "timestamp": "2025-11-15T10:34:56.862Z",
+  "mapping": [
+    {
+      "folder": "properties",
+      "original": "1.PNG",
+      "normalized": "1-1.png",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\1.PNG",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\1-1.png"
+    },
+    {
+      "folder": "properties",
+      "original": "2.PNG",
+      "normalized": "2-1.png",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\2.PNG",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\2-1.png"
+    },
+    {
+      "folder": "properties",
+      "original": "3.PNG",
+      "normalized": "3-1.png",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\3.PNG",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\3-1.png"
+    },
+    {
+      "folder": "properties",
+      "original": "4.PNG",
+      "normalized": "4-1.png",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\4.PNG",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\4-1.png"
+    },
+    {
+      "folder": "properties",
+      "original": "Affordable 3-Bedroom House in Kumasi.jpg",
+      "normalized": "affordable-3-bedroom-house-in-kumasi.jpg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\Affordable 3-Bedroom House in Kumasi.jpg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\affordable-3-bedroom-house-in-kumasi.jpg"
+    },
+    {
+      "folder": "properties",
+      "original": "Affordable3Bedroom.jpg",
+      "normalized": "affordable3bedroom-1.jpg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\Affordable3Bedroom.jpg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\affordable3bedroom-1.jpg"
+    },
+    {
+      "folder": "properties",
+      "original": "Cozy 2-Bedroom.jpeg",
+      "normalized": "cozy-2-bedroom.jpeg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\Cozy 2-Bedroom.jpeg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\cozy-2-bedroom.jpeg"
+    },
+    {
+      "folder": "properties",
+      "original": "ExecutiveMansion.jpg",
+      "normalized": "executivemansion-1.jpg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\ExecutiveMansion.jpg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\executivemansion-1.jpg"
+    },
+    {
+      "folder": "properties",
+      "original": "Kensington-Heights-Kumasi.jpg",
+      "normalized": "kensington-heights-kumasi-1.jpg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\Kensington-Heights-Kumasi.jpg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\kensington-heights-kumasi-1.jpg"
+    },
+    {
+      "folder": "properties",
+      "original": "LuxuryBeachfront.jpeg",
+      "normalized": "luxurybeachfront-1.jpeg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\LuxuryBeachfront.jpeg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\luxurybeachfront-1.jpeg"
+    },
+    {
+      "folder": "properties",
+      "original": "Modern Apartment in Airport City.jpeg",
+      "normalized": "modern-apartment-in-airport-city.jpeg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\Modern Apartment in Airport City.jpeg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\modern-apartment-in-airport-city.jpeg"
+    },
+    {
+      "folder": "properties",
+      "original": "PrimeCommercialLand.jpg",
+      "normalized": "primecommercialland-1.jpg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\PrimeCommercialLand.jpg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\primecommercialland-1.jpg"
+    },
+    {
+      "folder": "properties",
+      "original": "Real-estate-in-Ghana-2-1536x1025.jpg",
+      "normalized": "real-estate-in-ghana-2-1536x1025-1.jpg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\Real-estate-in-Ghana-2-1536x1025.jpg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\real-estate-in-ghana-2-1536x1025-1.jpg"
+    },
+    {
+      "folder": "properties",
+      "original": "smart living.jpg",
+      "normalized": "smart-living.jpg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\smart living.jpg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\smart-living.jpg"
+    },
+    {
+      "folder": "properties",
+      "original": "StudioApartment.jpg",
+      "normalized": "studioapartment-1.jpg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\StudioApartment.jpg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\studioapartment-1.jpg"
+    },
+    {
+      "folder": "properties",
+      "original": "SuCasa_Properties_Ghana_3.jpg",
+      "normalized": "sucasa_properties_ghana_3-1.jpg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\SuCasa_Properties_Ghana_3.jpg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\sucasa_properties_ghana_3-1.jpg"
+    },
+    {
+      "folder": "properties",
+      "original": "Tardi.jpg",
+      "normalized": "tardi-1.jpg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\Tardi.jpg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\tardi-1.jpg"
+    },
+    {
+      "folder": "properties",
+      "original": "The-Kensington-Heights-1.jpg",
+      "normalized": "the-kensington-heights-1-1.jpg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\The-Kensington-Heights-1.jpg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\properties\\the-kensington-heights-1-1.jpg"
+    },
+    {
+      "folder": "services",
+      "original": "Interior-Design.webp",
+      "normalized": "interior-design-1.webp",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\services\\Interior-Design.webp",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\services\\interior-design-1.webp"
+    },
+    {
+      "folder": "services",
+      "original": "Investment-Consulting.webp",
+      "normalized": "investment-consulting-1.webp",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\services\\Investment-Consulting.webp",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\services\\investment-consulting-1.webp"
+    },
+    {
+      "folder": "services",
+      "original": "Property-Management.jpg",
+      "normalized": "property-management-1.jpg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\services\\Property-Management.jpg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\services\\property-management-1.jpg"
+    },
+    {
+      "folder": "services",
+      "original": "Property-Sales.jpg",
+      "normalized": "property-sales-1.jpg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\services\\Property-Sales.jpg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\services\\property-sales-1.jpg"
+    },
+    {
+      "folder": "services",
+      "original": "Smart-Home-Installation.jpg",
+      "normalized": "smart-home-installation-1.jpg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\services\\Smart-Home-Installation.jpg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\services\\smart-home-installation-1.jpg"
+    },
+    {
+      "folder": "smartliving",
+      "original": "Security.jpg",
+      "normalized": "security-1.jpg",
+      "src": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\smartliving\\Security.jpg",
+      "dst": "C:\\laragon\\www\\archsmart\\archsmart.indiginfoundation.com\\public\\images\\smartliving\\security-1.jpg"
+    }
+  ]
+}

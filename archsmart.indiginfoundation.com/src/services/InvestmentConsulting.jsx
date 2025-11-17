@@ -1,6 +1,7 @@
 import React from "react";
 import { LineChart, Briefcase, TrendingUp, ShieldCheck, Globe } from "lucide-react";
 import { motion } from "framer-motion";
+import { assetUrl } from "../api/config";
 
 export default function InvestmentConsulting() {
   const features = [
@@ -75,7 +76,7 @@ export default function InvestmentConsulting() {
       <section className="py-16 px-6 lg:px-20 bg-gray-100 rounded-t-3xl">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <motion.img
-            src="/images/services/global-investment-opportunity.jpg"
+            src={assetUrl("/services/global-investment-opportunity.jpg")}
             alt="Global Investment Network"
             className="rounded-2xl shadow-lg w-full object-cover"
             initial={{ opacity: 0, scale: 0.9 }}

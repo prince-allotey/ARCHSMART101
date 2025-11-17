@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { fetchBlogs } from "../../../api/blogApi";
-import { BACKEND_ORIGIN } from "../../../api/config";
+import { resolveUploadedUrl, assetUrl, BACKEND_ORIGIN } from "../../../api/config";
+import PUBLIC_BLOG_IMAGES from "../../../data/publicBlogImages.json";
 import { Clock, User, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -27,13 +28,124 @@ const BlogSection = () => {
   };
 
   const resolveImageUrl = (src) => {
-    if (!src) return null;
-    if (/^https?:\/\//i.test(src)) return src;
-    if (src.startsWith("/storage") || src.startsWith("storage/") || src.startsWith("blog/")) {
-      const path = src.startsWith("/") ? src : `/${src}`;
-      return `${BACKEND_ORIGIN}${path}`;
+    const url = resolveUploadedUrl(src) || null;
+    if (!url) return null;
+    // If the resolved URL points at backend storage or our media API, add a small cache-bust
+    // so freshly uploaded images appear quickly during development / after updates.
+    try {
+      if (url.includes('/api/media/') || url.includes('/storage/')) {
+        return `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`;
+      }
+    } catch (e) {
+      // ignore
     }
-    return src;
+    return url;
+  };
+
+  // Pick the best image URL for a post:
+  // 1. If the post references a filename that exists in the frontend public images manifest, prefer `/images/blogs/<file>` (fast, avoids backend 404s)
+  // 2. Else use the resolved uploaded URL (may point at backend media API)
+  // 3. Else pick a deterministic rotating fallback from the public images list
+  const getImageForPost = (post, index = 0) => {
+    try {
+      const raw = post?.image || post?.cover_image || null;
+      // If raw contains a filename, check manifest
+      if (raw && typeof raw === 'string') {
+        // extract filename portion (strip query/hash)
+        const parts = raw.split('/');
+        const last = parts[parts.length - 1] || raw;
+        const filename = last.split('?')[0].split('#')[0];
+        if (filename && PUBLIC_BLOG_IMAGES && PUBLIC_BLOG_IMAGES.includes(filename)) {
+          return `/images/blogs/${filename}`;
+        }
+        // try resolving to backend/media URL or frontend mapping
+        const resolved = resolveImageUrl(raw);
+        if (resolved) return resolved;
+      }
+
+      // Deterministic rotating fallback using the public images manifest (or a sensible default)
+      const fallbacks = (PUBLIC_BLOG_IMAGES && PUBLIC_BLOG_IMAGES.length > 0) ? PUBLIC_BLOG_IMAGES : ['blog1.jpeg'];
+      const pick = fallbacks[index % fallbacks.length];
+      return `/images/blogs/${pick}`;
+    } catch (e) {
+      return '/images/blogs/blog1.jpeg';
+    }
+  };
+
+  const fallbackBlogImage = (key, offset = 1) => {
+    // deterministic selection of fallback blog images (blog1..blog5)
+    const choices = [1,2,3,4,5];
+    let seed = 0;
+    try {
+      const s = (key || '').toString();
+      for (let i = 0; i < s.length; i++) seed = (seed * 31 + s.charCodeAt(i)) >>> 0;
+    } catch (e) { seed = Date.now(); }
+    const idx = (seed + offset) % choices.length;
+    return `/blogs/blog${choices[idx]}.jpeg`;
+  };
+
+  const isRepairedDefault = (originalSrc, resolvedUrl) => {
+    // If a previous repair set the image to a generic default like '/images/blogs/blog1.jpeg',
+    // treat it as "missing" so each post can pick a deterministic fallback instead of all
+    // rendering the same static placeholder.
+    try {
+      if (!originalSrc && !resolvedUrl) return true;
+      const check = (s) => (s || '').toString();
+      const a = check(originalSrc).toLowerCase();
+      const b = check(resolvedUrl).toLowerCase();
+      if (a.includes('blog1.jpeg') || b.includes('blog1.jpeg')) return true;
+      // also consider the canonical repaired path used by the repair tool
+      if (a.includes('/images/blogs/') && a.endsWith('.jpeg') && a.includes('blog')) return true;
+    } catch (e) {
+      // ignore
+    }
+    return false;
+  };
+
+  const enhancedHandleImgError = (e, post, fallbackOffset = 1) => {
+    try {
+      const img = e.currentTarget;
+      // prevent infinite loops
+      const attempts = parseInt(img.dataset.attempts || '0', 10) + 1;
+      img.dataset.attempts = attempts;
+
+      // If we've tried enough, apply final fallback
+      if (attempts > 3 || img.__fallbackApplied) {
+        img.__fallbackApplied = true;
+        img.src = assetUrl(fallbackBlogImage(post?.id || post?.slug || post?.title, fallbackOffset));
+        return;
+      }
+
+      const current = (img.src || '').toString();
+      const filename = current.split('/').pop().split('?')[0].split('#')[0];
+
+      // Attempt 1: if a local public copy exists, use it
+      if (attempts === 1) {
+        if (filename && Array.isArray(PUBLIC_BLOG_IMAGES) && PUBLIC_BLOG_IMAGES.includes(filename)) {
+          img.src = `/images/blogs/${filename}`;
+          return;
+        }
+        // Try stripping to backend storage path
+        if (current.includes('/api/media/') && filename) {
+          img.src = `${BACKEND_ORIGIN}/storage/blogs/${filename}`;
+          return;
+        }
+      }
+
+      // Attempt 2: try backend media endpoint with cache-bust
+      if (attempts === 2) {
+        if (filename) {
+          img.src = `${BACKEND_ORIGIN}/api/media/blogs/${filename}?t=${Date.now()}`;
+          return;
+        }
+      }
+
+      // Final attempt: fallback image from assets
+      img.__fallbackApplied = true;
+      img.src = assetUrl(fallbackBlogImage(post?.id || post?.slug || post?.title, fallbackOffset));
+    } catch (err) {
+      try { e.currentTarget.src = assetUrl(fallbackBlogImage(post?.id || post?.slug || post?.title, fallbackOffset)); } catch (_) {}
+    }
   };
 
   const [posts, setPosts] = useState([]);
@@ -49,8 +161,9 @@ const BlogSection = () => {
             setPosts([]);
             return;
           }
-          const normalized = data.map((p) => ({
-            id: p.id ?? p._id,
+          const normalized = data.map((p, idx) => ({
+            // Ensure a stable unique id for React keys — prefer id, then _id, blog_id, slug, or index
+            id: p.id ?? p._id ?? p.blog_id ?? p.slug ?? `post-${idx}`,
             title: p.title ?? "",
             excerpt: p.excerpt ?? p.summary ?? "",
             content: p.content ?? "",
@@ -97,11 +210,12 @@ const BlogSection = () => {
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="lg:flex">
                 <div className="lg:w-1/2">
-                  <img
-                    src={resolveImageUrl(posts[0]?.image) || "/images/blogs/blog1.jpeg"}
-                    alt={posts[0]?.title || "Featured post"}
-                    className="w-full h-64 lg:h-full object-cover"
-                  />
+                        <img
+                          src={getImageForPost(posts[0], 1)}
+                          alt={posts[0]?.title || "Featured post"}
+                          className="w-full h-64 lg:h-full object-cover"
+                          onError={(e) => enhancedHandleImgError(e, posts[0], 1)}
+                        />
                 </div>
                 <div className="lg:w-1/2 p-8 flex flex-col justify-between">
                   <div>
@@ -139,14 +253,15 @@ const BlogSection = () => {
         )}
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {posts.slice(1).map((post) => (
+          {posts.slice(1).map((post, i) => (
             <div key={post.id} className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow overflow-hidden">
-              <div className="h-48 overflow-hidden">
+                <div className="h-48 overflow-hidden">
                 <img
-                  src={resolveImageUrl(post.image) || "/images/blogs/blog2.jpeg"}
-                  alt={post.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+                    src={getImageForPost(post, i+2)}
+                    alt={post.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => enhancedHandleImgError(e, post, i+2)}
+                  />
               </div>
               <div className="p-6">
                 <div className="flex items-center gap-2 mb-3">
