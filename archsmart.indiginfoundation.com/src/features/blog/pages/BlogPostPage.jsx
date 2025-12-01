@@ -142,14 +142,7 @@ export default function BlogPostPage() {
     try {
       const raw = p?.image || p?.cover_image || null;
       if (!raw) return assetUrl(fallbackBlogImage(p.id || p.slug || p.title, 1));
-      // extract filename
-      const parts = raw.split('/');
-      const last = parts[parts.length - 1] || raw;
-      const filename = last.split('?')[0].split('#')[0];
-      if (filename && Array.isArray(PUBLIC_BLOG_IMAGES) && PUBLIC_BLOG_IMAGES.includes(filename)) {
-        return `/images/blogs/${filename}`;
-      }
-      const resolved = resolveImageUrl(raw) || assetUrl(raw) || null;
+      const resolved = resolveUploadedUrl(raw) || assetUrl(raw) || null;
       if (!resolved) return assetUrl(fallbackBlogImage(p.id || p.slug || p.title, 1));
       const ts = p.updated_at ? new Date(p.updated_at).getTime() : (p.published_at ? new Date(p.published_at).getTime() : Date.now());
       // if the resolved URL points at backend media/storage, add small cache-bust
@@ -175,8 +168,9 @@ export default function BlogPostPage() {
       const current = (img.src || '').toString();
       const filename = current.split('/').pop().split('?')[0].split('#')[0];
       if (attempts === 1) {
+        const filename = current.split('/').pop().split('?')[0].split('#')[0];
         if (filename && Array.isArray(PUBLIC_BLOG_IMAGES) && PUBLIC_BLOG_IMAGES.includes(filename)) {
-          img.src = `/images/blogs/${filename}`;
+          img.src = resolveUploadedUrl(`blogs/${filename}`);
           return;
         }
         if (current.includes('/api/media/') && filename) {
@@ -205,7 +199,7 @@ export default function BlogPostPage() {
       for (let i = 0; i < s.length; i++) seed = (seed * 31 + s.charCodeAt(i)) >>> 0;
     } catch (e) { seed = Date.now(); }
     const idx = (seed + offset) % choices.length;
-    return `/images/blogs/blog${choices[idx]}.jpeg`;
+    return resolveUploadedUrl(`blogs/blog${choices[idx]}.jpeg`);
   };
 
   const isRepairedDefault = (originalSrc, resolvedUrl) => {

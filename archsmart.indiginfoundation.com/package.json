@@ -22,6 +22,7 @@
     "axios": "^1.12.2",
     "bootstrap": "^5.3.8",
     "clsx": "^2.1.1",
+    "cors": "^2.8.5",
     "framer-motion": "^12.23.22",
     "lucide-react": "^0.344.0",
     "photo-sphere-viewer": "^4.8.1",

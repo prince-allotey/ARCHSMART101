@@ -5,7 +5,15 @@ const API_URL = "/api";
 // Backend routes use `blog-posts` prefix
 export const fetchBlogs = async () => {
   const response = await api.get(`${API_URL}/blog-posts`);
-  return response.data;
+  let data = response.data;
+  if (Array.isArray(data)) {
+    return data;
+  } else if (data && Array.isArray(data.data)) {
+    return data.data;
+  } else {
+    console.warn("/api/blog-posts did not return an array", data);
+    return [];
+  }
 };
 
 // Admin-only: fetch all posts (draft and published)

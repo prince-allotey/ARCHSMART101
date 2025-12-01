@@ -36,7 +36,8 @@ const SinglePropertyPage = lazy(() => import("./features/properties/pages/Single
 const AgentPropertiesPage = lazy(() => import("./features/properties/pages/AgentPropertiesPage"));
 const DashboardUser = lazy(() => import("./pages/DashboardUser"));
 const DashboardAgent = lazy(() => import("./pages/DashboardAgent"));
-const DashboardAdmin = lazy(() => import("./pages/DashboardAdmin"));
+// const DashboardAdmin = lazy(() => import("./pages/DashboardAdmin"));
+import DashboardAdmin from "./pages/DashboardAdmin";
 const DashboardProperties = lazy(() => import("./pages/DashboardProperties"));
 const DashboardUsers = lazy(() => import("./pages/DashboardUsers"));
 const DashboardBlog = lazy(() => import("./pages/DashboardBlog"));
@@ -57,6 +58,9 @@ const InteriorDesign = lazy(() => import("./features/services/pages/InteriorDesi
 const InvestmentConsulting = lazy(() => import("./features/services/pages/InvestmentConsulting"));
 const PropertyManagements = lazy(() => import("./features/services/pages/PropertyManagements"));
 const FAQ = lazy(() => import("./features/services/pages/FAQ"));
+
+// Advert
+const AdvertRequestPage = lazy(() => import("./features/advert/pages/AdvertRequestPage"));
 
 // ... (rest of the file)
 function MainContent({ activeSection, setActiveSection }) {
@@ -151,6 +155,7 @@ function AppContent() {
           <Route path="/blog" element={<BlogSection />} />
           <Route path="/blog/:slug" element={<BlogPostPage />} />
           <Route path="/contact" element={<Suspense fallback={<div className="p-6">Loading…</div>}><ContactSection /></Suspense>} />
+          <Route path="/advertise" element={<Suspense fallback={<div className="p-6">Loading…</div>}><AdvertRequestPage /></Suspense>} />
 
           {/* Auth */}
           <Route path="/signup" element={<Suspense fallback={<div className="p-6">Loading…</div>}><SignupPage /></Suspense>} />
@@ -216,7 +221,7 @@ function AppContent() {
             path="/dashboard"
             element={
               <ProtectedRoute roles={["admin"]}>
-                <Suspense fallback={<div className="p-6">Loading…</div>}><DashboardAdmin /></Suspense>
+                <DashboardAdmin />
               </ProtectedRoute>
             }
           />

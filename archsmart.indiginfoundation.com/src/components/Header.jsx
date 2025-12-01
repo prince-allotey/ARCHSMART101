@@ -28,6 +28,7 @@ export default function Header({ activeSection, onSectionChange }) {
     { label: "Home", section: "home", path: "/", icon: Home },
     { label: "Properties", section: "properties", path: "/properties", icon: Home },
     { label: "Smart Living", section: "smart-living", path: "/smart-living", icon: Sparkles },
+    { label: "Advertise", section: "advertise", path: "/advertise", icon: BookOpen },
     { label: "Education", section: "education", path: "/education", icon: GraduationCap },
     { label: "Blog", section: "blog", path: "/blog", icon: BookOpen },
   ];

@@ -5,7 +5,8 @@ import ChartCard from "../features/dashboard/components/ChartCard";
 const AdminApprovals = React.lazy(() => import("../features/dashboard/components/AdminApprovals"));
 const AdminBlogForm = React.lazy(() => import("../features/dashboard/components/AdminBlogFormSimple"));
 const AdminBlogManager = React.lazy(() => import("../features/dashboard/components/AdminBlogManager"));
-import { Home, Users, FileText, Clock, Bell } from "lucide-react";
+const AdvertRequestsAdmin = React.lazy(() => import("../features/advert/admin/AdvertRequestsAdmin"));
+import { Home, Users, FileText, Clock, Bell, TrendingUp, Activity, Zap, RefreshCw, BarChart3 } from "lucide-react";
 import axios from "../api/axios";
 import toast from "react-hot-toast";
 
@@ -190,264 +191,543 @@ export default function DashboardAdmin() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        {/* Page Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Welcome back! Here's what's happening with your platform today.
-          </p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
-            title="Total Properties"
-            value={stats.totalProperties}
-            icon={Home}
-            color="blue"
-            footer="All listed properties"
-          />
-          <StatCard
-            title="Total Users"
-            value={stats.totalUsers || "—"}
-            icon={Users}
-            color="green"
-            footer="Registered users"
-          />
-          <StatCard
-            title="Blog Posts"
-            value={stats.totalBlogPosts}
-            icon={FileText}
-            color="purple"
-            footer="Published articles"
-          />
-          <StatCard
-            title="Pending Approvals"
-            value={stats.pendingApprovals}
-            icon={Clock}
-            color="orange"
-            footer="Awaiting review"
-          />
-          <StatCard
-            title="Push Status"
-            value={stats.pushReady ? 'Active' : 'Inactive'}
-            icon={Bell}
-            color={stats.pushReady ? 'green' : 'gray'}
-            footer={stats.pushReady ? 'Ready for test' : 'No subscription'}
-          />
-        </div>
-
-        {/* Consulting Panel */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800">Consulting Requests</h2>
-              <p className="text-sm text-gray-500">Track recent consultation requests from customers.</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white p-8">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Professional Page Header */}
+          <div className="relative z-10 mt-6 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-slate-600 to-blue-700 p-8 text-white shadow-2xl border border-blue-500/20">
+            <div className="absolute inset-0 bg-black/5"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                    Platform Analytics
+                  </h1>
+                  <p className="text-blue-100 text-lg font-medium leading-relaxed">
+                    Comprehensive insights into your real estate platform performance and growth metrics.
+                  </p>
+                  <div className="mt-4 flex items-center gap-6 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-blue-200">Live Data</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                      <span className="text-blue-200">Real-time Updates</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="hidden md:flex items-center space-x-4">
+                  <div className="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-full px-5 py-3 border border-white/20">
+                    <Activity className="h-5 w-5 text-green-300" />
+                    <span className="text-sm font-medium">All Systems Operational</span>
+                  </div>
+                  <button
+                    onClick={() => setRefresh(r => r + 1)}
+                    className="bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full p-3 transition-all duration-200 hover:scale-105 border border-white/20"
+                    title="Refresh Data"
+                  >
+                    <RefreshCw className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
-              <span className="text-sm text-gray-500">{consultData.total} total requests</span>
-              <button
-                type="button"
-                onClick={fetchConsultations}
-                disabled={consultData.loading}
-                className="px-3 py-1 text-sm font-medium rounded bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:cursor-wait disabled:bg-gray-100 disabled:text-gray-400 transition"
-              >
-                Refresh
-              </button>
+            {/* Decorative elements */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-300/20 rounded-full blur-2xl"></div>
+          </div>
+
+          {/* Modern Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer">
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <Home className="h-8 w-8 text-blue-200" />
+                  <TrendingUp className="h-5 w-5 text-blue-300" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-blue-100 text-sm font-medium">Total Properties</p>
+                  <p className="text-3xl font-bold">{stats.totalProperties}</p>
+                  <p className="text-blue-200 text-xs">All listed properties</p>
+                </div>
+              </div>
+              <div className="absolute -bottom-2 -right-2 w-20 h-20 bg-white/10 rounded-full blur-xl group-hover:bg-white/20 transition-colors duration-300"></div>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-600 to-slate-700 p-6 text-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer">
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <Users className="h-8 w-8 text-slate-200" />
+                  <Activity className="h-5 w-5 text-slate-300" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-slate-100 text-sm font-medium">Total Users</p>
+                  <p className="text-3xl font-bold">{stats.totalUsers || "—"}</p>
+                  <p className="text-slate-200 text-xs">Registered users</p>
+                </div>
+              </div>
+              <div className="absolute -bottom-2 -right-2 w-20 h-20 bg-white/10 rounded-full blur-xl group-hover:bg-white/20 transition-colors duration-300"></div>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-6 text-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer">
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <FileText className="h-8 w-8 text-blue-200" />
+                  <BarChart3 className="h-5 w-5 text-blue-300" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-blue-100 text-sm font-medium">Blog Posts</p>
+                  <p className="text-3xl font-bold">{stats.totalBlogPosts}</p>
+                  <p className="text-blue-200 text-xs">Published articles</p>
+                </div>
+              </div>
+              <div className="absolute -bottom-2 -right-2 w-20 h-20 bg-white/10 rounded-full blur-xl group-hover:bg-white/20 transition-colors duration-300"></div>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-600 to-orange-600 p-6 text-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer">
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <Clock className="h-8 w-8 text-amber-200" />
+                  <div className="relative">
+                    <Zap className="h-5 w-5 text-amber-300" />
+                    {stats.pendingApprovals > 0 && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-400 rounded-full animate-pulse"></div>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-amber-100 text-sm font-medium">Pending Approvals</p>
+                  <p className="text-3xl font-bold">{stats.pendingApprovals}</p>
+                  <p className="text-amber-200 text-xs">Awaiting review</p>
+                </div>
+              </div>
+              <div className="absolute -bottom-2 -right-2 w-20 h-20 bg-white/10 rounded-full blur-xl group-hover:bg-white/20 transition-colors duration-300"></div>
             </div>
           </div>
-          <div className="p-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[{
-                label: "Total requests",
-                value: consultData.total,
-              }, {
-                label: "Recent records",
-                value: consultData.items.length,
-              }, {
-                label: "Latest received",
-                value: consultData.items[0] ? formatDate(consultData.items[0].created_at) : "—",
-              }].map((stat) => (
-                <div key={stat.label} className="rounded-lg border border-gray-100 bg-gray-50 p-4 text-center">
-                  <p className="text-xs uppercase tracking-wide text-gray-500">{stat.label}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+
+          {/* Modern Consulting Panel */}
+          <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold mb-1">Consulting Requests</h2>
+                  <p className="text-blue-100">Track recent consultation requests from customers</p>
                 </div>
-              ))}
+                <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
+                    <span className="text-sm font-medium">{consultData.total} total requests</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={fetchConsultations}
+                    disabled={consultData.loading}
+                    className="bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${consultData.loading ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </button>
+                </div>
+              </div>
             </div>
-            {consultData.loading ? (
-              <div className="text-sm text-gray-500">Loading consultation requests…</div>
-            ) : consultData.items.length === 0 ? (
-              <div className="text-sm text-gray-500">No consultation requests available.</div>
-            ) : (
-              <div className="space-y-3">
-                {consultData.items.map((item) => (
-                  <div key={item.id} className="relative rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-base font-semibold text-gray-800">{item.name || "Anonymous"}</p>
-                        <p className="text-sm text-gray-500">
-                          {item.email}
-                          {item.phone ? ` · ${item.phone}` : ""}
-                        </p>
-                      </div>
-                      <span className="text-xs text-gray-400">{formatDate(item.created_at, true)}</span>
+
+            <div className="p-6">
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                {[{
+                  label: "Total requests",
+                  value: consultData.total,
+                  icon: Users,
+                  color: "from-blue-600 to-blue-700"
+                }, {
+                  label: "Recent records",
+                  value: consultData.items.length,
+                  icon: Activity,
+                  color: "from-slate-600 to-slate-700"
+                }, {
+                  label: "Latest received",
+                  value: consultData.items[0] ? formatDate(consultData.items[0].created_at) : "—",
+                  icon: Clock,
+                  color: "from-blue-600 to-blue-700"
+                }].map((stat, index) => (
+                  <div key={stat.label} className={`bg-gradient-to-br ${stat.color} rounded-xl p-4 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <stat.icon className="h-6 w-6 text-white/80" />
+                      <TrendingUp className="h-4 w-4 text-white/60" />
                     </div>
-                    {item.message && (
-                      <p className="text-sm text-gray-600 mt-3 line-clamp-3">{item.message}</p>
-                    )}
+                    <p className="text-xs uppercase tracking-wide text-white/80 font-medium">{stat.label}</p>
+                    <p className="text-2xl font-bold mt-1">{stat.value}</p>
                   </div>
                 ))}
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* Charts Section - Light Bootstrap Style */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Property Types Pie Chart */}
-          <ChartCard
-            title="Property Distribution"
-            subtitle="By property type"
-            footer="Updated now"
-          >
-            <Suspense fallback={<div className="w-full" style={{height:250}}><div className="h-full w-full bg-gray-100 rounded" /></div>}>
-              <PropertyDistributionChart data={propertyTypeData} />
-            </Suspense>
-          </ChartCard>
-
-          {/* Monthly Inquiries Line Chart */}
-          <ChartCard
-            title="User Behavior"
-            subtitle="Monthly inquiries trend"
-            footer="Last 6 months"
-          >
-            <Suspense fallback={<div className="w-full" style={{height:250}}><div className="h-full w-full bg-gray-100 rounded" /></div>}>
-              <InquiriesLineChart data={monthlyInquiriesData} />
-            </Suspense>
-          </ChartCard>
-
-          {/* Sales Bar Chart */}
-          <ChartCard title="2024 Sales" subtitle="Properties sold per month" footer="Year to date">
-            <Suspense fallback={<div className="w-full" style={{height:250}}><div className="h-full w-full bg-gray-100 rounded" /></div>}>
-              <SalesBarChart data={salesData} />
-            </Suspense>
-          </ChartCard>
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Pending Properties */}
-          <div className="bg-white rounded-lg shadow-md">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-800">Pending Properties</h2>
-              <p className="text-sm text-gray-500">Review and approve property listings</p>
+              {/* Consultation Items */}
+              {consultData.loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                  <span className="ml-3 text-gray-600">Loading consultation requests...</span>
+                </div>
+              ) : consultData.items.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Users className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 text-lg">No consultation requests available</p>
+                  <p className="text-gray-400 text-sm mt-1">New requests will appear here</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {consultData.items.map((item, index) => (
+                    <div key={item.id} className="group relative bg-gradient-to-r from-white to-gray-50 rounded-xl p-6 shadow-sm hover:shadow-lg border border-gray-100 hover:border-indigo-200 transition-all duration-300 hover:scale-[1.02]">
+                      <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="relative z-10">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                                {(item.name || "A")[0].toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="text-lg font-semibold text-gray-800">{item.name || "Anonymous"}</p>
+                                <div className="flex items-center gap-4 text-sm text-gray-500">
+                                  <span className="flex items-center gap-1">
+                                    <FileText className="h-4 w-4" />
+                                    {item.email}
+                                  </span>
+                                  {item.phone && (
+                                    <span className="flex items-center gap-1">
+                                      <Bell className="h-4 w-4" />
+                                      {item.phone}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            {item.message && (
+                              <div className="bg-gray-50 rounded-lg p-4 mt-3 border-l-4 border-indigo-500">
+                                <p className="text-gray-700 leading-relaxed">{item.message}</p>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <span className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-medium">
+                              <Clock className="h-3 w-3" />
+                              {formatDate(item.created_at, true)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="p-6">
-              <Suspense fallback={<div className="h-48 w-full bg-gray-100 rounded" /> }>
-                <AdminApprovals />
-              </Suspense>
+          </div>
+
+          {/* Modern Charts Section */}
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">Analytics & Insights</h2>
+              <p className="text-gray-600">Visualize your platform's performance and trends</p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Property Types Pie Chart */}
+              <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white">
+                  <h3 className="text-lg font-semibold">Property Distribution</h3>
+                  <p className="text-blue-100 text-sm">By property type</p>
+                </div>
+                <div className="p-6">
+                  <Suspense fallback={
+                    <div className="w-full h-64 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  }>
+                    <PropertyDistributionChart data={propertyTypeData} />
+                  </Suspense>
+                  <div className="mt-4 text-center">
+                    <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Updated now</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Monthly Inquiries Line Chart */}
+              <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                <div className="bg-gradient-to-r from-slate-600 to-slate-700 p-4 text-white">
+                  <h3 className="text-lg font-semibold">User Behavior</h3>
+                  <p className="text-slate-100 text-sm">Monthly inquiries trend</p>
+                </div>
+                <div className="p-6">
+                  <Suspense fallback={
+                    <div className="w-full h-64 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600"></div>
+                    </div>
+                  }>
+                    <InquiriesLineChart data={monthlyInquiriesData} />
+                  </Suspense>
+                  <div className="mt-4 text-center">
+                    <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Last 6 months</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sales Bar Chart */}
+              <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white">
+                  <h3 className="text-lg font-semibold">2024 Sales</h3>
+                  <p className="text-blue-100 text-sm">Properties sold per month</p>
+                </div>
+                <div className="p-6">
+                  <Suspense fallback={
+                    <div className="w-full h-64 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  }>
+                    <SalesBarChart data={salesData} />
+                  </Suspense>
+                  <div className="mt-4 text-center">
+                    <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Year to date</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Create Blog Post */}
-          <div className="bg-white rounded-lg shadow-md">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-800">Create Blog Post</h2>
-              <p className="text-sm text-gray-500">Publish new content</p>
+          {/* Modern Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Pending Properties */}
+            <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-300">
+              <div className="bg-gradient-to-r from-amber-600 to-orange-600 p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold">Pending Properties</h2>
+                    <p className="text-amber-100 text-sm">Review and approve property listings</p>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                    <Clock className="h-6 w-6" />
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                <Suspense fallback={
+                  <div className="h-64 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600"></div>
+                  </div>
+                }>
+                  <AdminApprovals />
+                </Suspense>
+              </div>
             </div>
-            <div className="p-6">
-              <Suspense fallback={<div className="h-56 w-full bg-gray-100 rounded" /> }>
-                <AdminBlogForm onCreated={() => setRefresh((r) => r + 1)} />
-              </Suspense>
-            </div>
-          </div>
-        </div>
 
-        {/* Blog Manager */}
-        <div className="bg-white rounded-lg shadow-md">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-800">Manage Blog Posts</h2>
-            <p className="text-sm text-gray-500">Edit or delete existing posts</p>
+            {/* Advert Requests */}
+            <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-300">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold">Advert Requests</h2>
+                    <p className="text-blue-100 text-sm">Review business advert applications</p>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                    <FileText className="h-6 w-6" />
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                <Suspense fallback={
+                  <div className="h-64 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                }>
+                  <AdvertRequestsAdmin />
+                </Suspense>
+              </div>
+            </div>
           </div>
-          <div className="p-6">
-            <Suspense fallback={<div className="h-64 w-full bg-gray-100 rounded" /> }>
-              <AdminBlogManager />
-            </Suspense>
-            <div className="mt-8 border-t pt-6">
-              <h3 className="text-md font-semibold mb-2 flex items-center gap-2"><Bell className="h-4 w-4" /> Push Notifications</h3>
-              <p className="text-sm text-gray-600 mb-4">Use the button below to send a test notification to your current browser subscription.</p>
-              <button
-                disabled={!testPushEndpoint}
-                onClick={async () => {
-                  try {
-                    await axios.post('/api/push/test', { endpoint: testPushEndpoint });
-                    alert('Test push sent (check notification area).');
-                  } catch (e) {
-                    alert('Failed to send test push.');
-                  }
-                }}
-                className={`px-4 py-2 rounded text-white text-sm font-medium ${testPushEndpoint ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
-              >
-                Send Test Push
-              </button>
+
+          {/* Modern Blog Management Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Create Blog Post */}
+            <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-300">
+              <div className="bg-gradient-to-r from-slate-600 to-slate-700 p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold">Create Blog Post</h2>
+                    <p className="text-slate-100 text-sm">Publish new content</p>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                    <FileText className="h-6 w-6" />
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                <Suspense fallback={
+                  <div className="h-64 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600"></div>
+                  </div>
+                }>
+                  <AdminBlogForm onCreated={() => setRefresh((r) => r + 1)} />
+                </Suspense>
+              </div>
+            </div>
+
+            {/* Blog Manager */}
+            <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-300">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold">Manage Blog Posts</h2>
+                    <p className="text-blue-100 text-sm">Edit or delete existing posts</p>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                    <BarChart3 className="h-6 w-6" />
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                <Suspense fallback={
+                  <div className="h-64 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                }>
+                  <AdminBlogManager />
+                </Suspense>
+                <div className="mt-8 border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-gray-800">
+                    <Bell className="h-5 w-5 text-blue-600" />
+                    Push Notifications
+                  </h3>
+                  <p className="text-gray-600 mb-4 text-sm">
+                    Use the button below to send a test notification to your current browser subscription.
+                  </p>
+                  <button
+                    disabled={!testPushEndpoint}
+                    onClick={async () => {
+                      try {
+                        await axios.post('/api/push/test', { endpoint: testPushEndpoint });
+                        toast.success('Test push sent! Check your notifications.', {
+                          icon: '🔔',
+                          duration: 4000,
+                        });
+                      } catch (e) {
+                        toast.error('Failed to send test push notification');
+                      }
+                    }}
+                    className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                      testPushEndpoint
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 hover:shadow-lg hover:scale-105'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <Zap className="h-5 w-5" />
+                    {testPushEndpoint ? 'Send Test Push' : 'No Subscription Available'}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Image Diagnostics */}
-        <div className="bg-white rounded-lg shadow-md mt-6">
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800">Image Diagnostics</h2>
-              <p className="text-sm text-gray-500">Checks stored property image URLs for load success vs failure.</p>
-            </div>
-            <div>
-              <button
-                onClick={async () => { setDiagnosticsEnabled(true); await runDiagnostics(); }}
-                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-              >
-                Run Diagnostics
-              </button>
+        <div className="bg-gradient-to-br from-white via-slate-50/30 to-blue-50/30 rounded-2xl shadow-xl border border-white/20 backdrop-blur-sm mt-8 overflow-hidden">
+          <div className="px-8 py-6 border-b border-white/30 bg-gradient-to-r from-blue-600/10 via-slate-600/10 to-blue-600/10">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-r from-blue-600 to-slate-600 rounded-xl shadow-lg">
+                    <BarChart3 className="h-6 w-6 text-white" />
+                  </div>
+                  Image Diagnostics
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">Checks stored property image URLs for load success vs failure.</p>
+              </div>
+              <div>
+                <button
+                  onClick={async () => { setDiagnosticsEnabled(true); await runDiagnostics(); }}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-slate-600 text-white text-sm font-medium rounded-xl hover:from-blue-700 hover:to-slate-700 hover:shadow-lg hover:scale-105 transition-all duration-200 flex items-center gap-2"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Run Diagnostics
+                </button>
+              </div>
             </div>
           </div>
-          <div className="p-6 space-y-4">
+          <div className="p-8 space-y-6">
             {imageDiagnostics.loading && (
-              <div className="text-sm text-gray-500">Running diagnostics…</div>
+              <div className="flex items-center justify-center py-8">
+                <div className="flex items-center gap-3 text-gray-600">
+                  <RefreshCw className="h-5 w-5 animate-spin" />
+                  <span className="text-sm font-medium">Running diagnostics…</span>
+                </div>
+              </div>
             )}
             {!imageDiagnostics.loading && imageDiagnostics.items.length === 0 && (
-              <div className="text-sm text-gray-500">No properties available for diagnostics.</div>
+              <div className="text-center py-12">
+                <div className="p-4 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full w-fit mx-auto mb-4">
+                  <BarChart3 className="h-8 w-8 text-gray-400" />
+                </div>
+                <p className="text-sm text-gray-500 font-medium">No properties available for diagnostics.</p>
+              </div>
             )}
             {!imageDiagnostics.loading && imageDiagnostics.items.length > 0 && (
               <>
-                <div className="text-xs text-gray-600 mb-2">Checked images: {imageDiagnostics.checked}</div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100/50">
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-700">Checked images:</span>
+                    <span className="text-sm font-bold text-blue-600">{imageDiagnostics.checked}</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {imageDiagnostics.items.map(item => {
                     const total = item.urls.length;
                     const okCount = item.results.filter(r => r.ok).length;
                     const failed = total - okCount;
                     return (
-                      <div key={item.id} className="border rounded-lg p-4 bg-gray-50">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-sm font-semibold text-gray-800 truncate" title={item.title}>{item.title || 'Untitled'}</h3>
-                          <span className={`text-xs px-2 py-1 rounded-full ${failed === 0 ? 'bg-green-100 text-green-700' : failed === total ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{okCount}/{total}</span>
+                      <div key={item.id} className="bg-gradient-to-br from-white to-gray-50/50 rounded-xl p-6 border border-white/60 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 backdrop-blur-sm">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-sm font-bold text-gray-800 truncate flex-1" title={item.title}>
+                            {item.title || 'Untitled'}
+                          </h3>
+                          <span className={`text-xs px-3 py-1.5 rounded-full font-medium shadow-sm ${
+                            failed === 0 
+                              ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-200' 
+                              : failed === total 
+                                ? 'bg-gradient-to-r from-red-100 to-rose-100 text-red-700 border border-red-200' 
+                                : 'bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-700 border border-amber-200'
+                          }`}>
+                            {okCount}/{total}
+                          </span>
                         </div>
-                        <div className="space-y-1 max-h-32 overflow-y-auto pr-1 text-[11px] leading-tight">
+                        <div className="space-y-2 max-h-32 overflow-y-auto pr-2 text-xs leading-relaxed">
                           {item.results.map(r => (
-                            <div key={r.url} className="flex items-center gap-1">
-                              <span className={`w-2 h-2 rounded-full ${r.ok ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                              <span className="truncate" title={r.url}>{r.url.replace(/^https?:\/\//,'')}</span>
+                            <div key={r.url} className="flex items-center gap-2 py-1 px-2 rounded-lg bg-white/50 hover:bg-white/80 transition-colors">
+                              <span className={`w-2.5 h-2.5 rounded-full shadow-sm ${r.ok ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                              <span className="truncate text-gray-700" title={r.url}>
+                                {r.url.replace(/^https?:\/\//,'')}
+                              </span>
                             </div>
                           ))}
                           {item.results.length === 0 && item.urls.map(u => (
-                            <div key={u} className="flex items-center gap-1">
-                              <span className="w-2 h-2 rounded-full bg-gray-400 animate-pulse" />
-                              <span className="truncate" title={u}>{u.replace(/^https?:\/\//,'')}</span>
+                            <div key={u} className="flex items-center gap-2 py-1 px-2 rounded-lg bg-white/50">
+                              <span className="w-2.5 h-2.5 rounded-full bg-gray-400 animate-pulse shadow-sm" />
+                              <span className="truncate text-gray-700" title={u}>
+                                {u.replace(/^https?:\/\//,'')}
+                              </span>
                             </div>
                           ))}
                         </div>
                         {failed > 0 && (
-                          <div className="mt-2 text-xs text-red-600">{failed} image{failed!==1?'s':''} failed to load.</div>
+                          <div className="mt-4 p-3 bg-gradient-to-r from-red-50 to-rose-50 rounded-lg border border-red-100">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                              <span className="text-xs font-medium text-red-700">
+                                {failed} image{failed!==1?'s':''} failed to load.
+                              </span>
+                            </div>
+                          </div>
                         )}
                       </div>
                     );

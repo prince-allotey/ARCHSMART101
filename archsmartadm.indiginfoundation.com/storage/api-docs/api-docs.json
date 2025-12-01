@@ -2,7 +2,7 @@
     "openapi": "3.0.0",
     "info": {
         "title": "ArchSmart API Documentation",
-        "description": "Complete API documentation for ArchSmart Real Estate Platform",
+        "description": "Complete API documentation for ArchSmart Real Estate Platform. \r\n * \r\n * **Authentication:**\r\n * 1. First, login using the `/login` endpoint with your credentials\r\n * 2. Copy the token from the response\r\n * 3. Click the 'Authorize' button (🔓) at the top right\r\n * 4. Paste your token in the value field (just the token, without 'Bearer')\r\n * 5. Click 'Authorize' and then 'Close'\r\n * 6. Now you can test all protected endpoints\r\n * \r\n * **Note:** All API requests should use `Accept: application/json` header.",
         "contact": {
             "name": "ArchSmart Support",
             "email": "admin@archsmart.com"
@@ -21,9 +21,233 @@
         {
             "url": "http://localhost:8000/api",
             "description": "Local Development Server"
+        },
+        {
+            "url": "/api",
+            "description": "Current Domain API Server"
         }
     ],
     "paths": {
+        "/admin/agents": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get all agents (Admin only)",
+                "description": "Retrieve list of all agents with their status and approval information",
+                "operationId": "149279b52dbf5076696c1c31641a6039",
+                "responses": {
+                    "200": {
+                        "description": "List of agents",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "email": {
+                                                "type": "string"
+                                            },
+                                            "status": {
+                                                "type": "string"
+                                            },
+                                            "is_approved": {
+                                                "type": "boolean"
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin only"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/admin/agents/pending": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get pending agents (Admin only)",
+                "description": "Retrieve list of agents awaiting approval",
+                "operationId": "2593670a78583ee4bdf607d2dad46496",
+                "responses": {
+                    "200": {
+                        "description": "List of pending agents",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "email": {
+                                                "type": "string"
+                                            },
+                                            "status": {
+                                                "type": "string"
+                                            },
+                                            "is_approved": {
+                                                "type": "boolean"
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin only"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/admin/agents/{id}/approve": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Approve an agent (Admin only)",
+                "description": "Approve a pending agent registration",
+                "operationId": "274a2d401dbeca5e9e9df11e8952916c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Agent User ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agent approved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Agent approved successfully"
+                                        },
+                                        "user": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "User is not an agent"
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin only"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/admin/agents/{id}/suspend": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Suspend an agent (Admin only)",
+                "description": "Suspend or deactivate an agent account",
+                "operationId": "11ab0369379b69d14794c04610b30027",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Agent User ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agent suspended successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Agent suspended successfully"
+                                        },
+                                        "user": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "User is not an agent"
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin only"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/register": {
             "post": {
                 "tags": [
@@ -327,6 +551,2517 @@
                 ]
             }
         },
+        "/admin/blog-posts": {
+            "get": {
+                "tags": [
+                    "Blog Posts",
+                    "Admin"
+                ],
+                "summary": "Get all blog posts (Admin)",
+                "description": "Retrieve all blog posts including drafts and published. Admin only.",
+                "operationId": "9a3d48866f317d8fab7a3d2fa1b379f6",
+                "responses": {
+                    "200": {
+                        "description": "List of all blog posts",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/BlogPost"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin only"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/blog-posts": {
+            "get": {
+                "tags": [
+                    "Blog Posts"
+                ],
+                "summary": "Get published blog posts",
+                "description": "Retrieve all published blog posts with author information",
+                "operationId": "7d707701862420624cb322614a06dbc7",
+                "responses": {
+                    "200": {
+                        "description": "List of published blog posts",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/BlogPost"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Blog Posts"
+                ],
+                "summary": "Create new blog post",
+                "description": "Create a new blog post. Authenticated users can create posts.",
+                "operationId": "56d872311e61e0f84f91057b7b57174a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "content",
+                                    "status"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "10 Tips for Home Buyers"
+                                    },
+                                    "subtitle": {
+                                        "type": "string",
+                                        "example": "A comprehensive guide"
+                                    },
+                                    "excerpt": {
+                                        "type": "string",
+                                        "example": "Learn essential tips..."
+                                    },
+                                    "summary": {
+                                        "type": "string",
+                                        "example": "Detailed summary of the post"
+                                    },
+                                    "content": {
+                                        "type": "string",
+                                        "example": "<p>Full content with HTML...</p>"
+                                    },
+                                    "category": {
+                                        "type": "string",
+                                        "example": "real-estate"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "draft",
+                                            "published"
+                                        ],
+                                        "example": "published"
+                                    },
+                                    "meta_title": {
+                                        "type": "string",
+                                        "example": "SEO Title"
+                                    },
+                                    "meta_description": {
+                                        "type": "string",
+                                        "example": "SEO Description"
+                                    },
+                                    "canonical_url": {
+                                        "type": "string",
+                                        "example": "https://example.com/blog/post"
+                                    },
+                                    "seo_keywords": {
+                                        "type": "string",
+                                        "example": "real estate, tips, buying"
+                                    },
+                                    "is_featured": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "cover_image_alt": {
+                                        "type": "string",
+                                        "example": "Beautiful home"
+                                    },
+                                    "estimated_read_time": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "reading_level": {
+                                        "type": "string",
+                                        "example": "beginner"
+                                    },
+                                    "layout": {
+                                        "type": "string",
+                                        "example": "standard"
+                                    },
+                                    "tags": {
+                                        "type": "string",
+                                        "example": "real-estate,tips"
+                                    },
+                                    "image": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "secondary_image": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Blog post created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BlogPost"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/blog-posts/{slug}": {
+            "get": {
+                "tags": [
+                    "Blog Posts"
+                ],
+                "summary": "Get blog post by slug",
+                "description": "Retrieve a single blog post by its slug or ID. Supports fuzzy matching for slugs.",
+                "operationId": "b3249a5ade845693dab76884a506fa72",
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "description": "Blog post slug or ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Blog post details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BlogPost"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Blog post not found"
+                    }
+                }
+            }
+        },
+        "/blog-posts/{blogPost}": {
+            "put": {
+                "tags": [
+                    "Blog Posts"
+                ],
+                "summary": "Update blog post",
+                "description": "Update an existing blog post. Authors can update their own posts, admins can update any post.",
+                "operationId": "5fb7e2eaf8a4d425ee4bd17bb001b134",
+                "parameters": [
+                    {
+                        "name": "blogPost",
+                        "in": "path",
+                        "description": "Blog Post ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Updated Title"
+                                    },
+                                    "subtitle": {
+                                        "type": "string",
+                                        "example": "Updated subtitle"
+                                    },
+                                    "content": {
+                                        "type": "string",
+                                        "example": "<p>Updated content...</p>"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "draft",
+                                            "published"
+                                        ]
+                                    },
+                                    "category": {
+                                        "type": "string",
+                                        "example": "real-estate"
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Blog post updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BlogPost"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Blog post not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Blog Posts"
+                ],
+                "summary": "Delete blog post",
+                "description": "Delete a blog post. Authors can delete their own posts, admins can delete any post.",
+                "operationId": "af800d5c6a8c5d0321b3f3967011095e",
+                "parameters": [
+                    {
+                        "name": "blogPost",
+                        "in": "path",
+                        "description": "Blog Post ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Blog post deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Deleted successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Blog post not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/posts/{postId}/comments": {
+            "get": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Get blog post comments",
+                "description": "Retrieve all comments for a specific blog post",
+                "operationId": "48be78ad2417cc7a2b2c87765a6cb6d0",
+                "parameters": [
+                    {
+                        "name": "postId",
+                        "in": "path",
+                        "description": "Blog Post ID or slug",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of comments",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "post_id": {
+                                                "type": "integer"
+                                            },
+                                            "user_id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "email": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "body": {
+                                                "type": "string"
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Blog post not found"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Post a comment",
+                "description": "Add a comment to a blog post. Authenticated users auto-fill name/email.",
+                "operationId": "ce8360d198d910f414bf4e4af039712a",
+                "parameters": [
+                    {
+                        "name": "postId",
+                        "in": "path",
+                        "description": "Blog Post ID or slug",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "body"
+                                ],
+                                "properties": {
+                                    "body": {
+                                        "type": "string",
+                                        "maxLength": 2000,
+                                        "example": "Great article!"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 120,
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Comment posted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "body": {
+                                            "type": "string"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Blog post not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/consultations": {
+            "get": {
+                "tags": [
+                    "Consultations"
+                ],
+                "summary": "Get all consultations (Admin only)",
+                "description": "Retrieve list of consultation requests with optional limit",
+                "operationId": "03192b1632d51781c7469b20e2771020",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Maximum number of results (1-25)",
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of consultations",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "total": {
+                                            "type": "integer"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Consultation"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin only"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Consultations"
+                ],
+                "summary": "Book a consultation",
+                "description": "Submit a consultation request. Public endpoint.",
+                "operationId": "8814cd9ef86cdeb5714a8f93ce171ece",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "phone"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+1234567890"
+                                    },
+                                    "message": {
+                                        "type": "string",
+                                        "example": "I would like to schedule a consultation..."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Consultation booked successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Consultation booked successfully!"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Consultation"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/consultations/{consultation}": {
+            "put": {
+                "tags": [
+                    "Consultations"
+                ],
+                "summary": "Respond to consultation (Admin only)",
+                "description": "Update consultation status and add response message",
+                "operationId": "d36c4ebe240d4ddfff002456448e7632",
+                "parameters": [
+                    {
+                        "name": "consultation",
+                        "in": "path",
+                        "description": "Consultation ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "responded",
+                                            "closed"
+                                        ]
+                                    },
+                                    "response_message": {
+                                        "type": "string",
+                                        "example": "Thank you for your consultation request..."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Consultation updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Consultation updated successfully!"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Consultation"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin only"
+                    },
+                    "404": {
+                        "description": "Consultation not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/dashboard/overview": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get dashboard overview",
+                "description": "Retrieve dashboard metrics. Admins see system-wide statistics, agents see their own property data.",
+                "operationId": "651bc227644e3eaf947f107ac3d77adf",
+                "responses": {
+                    "200": {
+                        "description": "Dashboard overview data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "totals": {
+                                            "properties": {
+                                                "users": {
+                                                    "type": "integer"
+                                                },
+                                                "agents": {
+                                                    "type": "integer"
+                                                },
+                                                "admins": {
+                                                    "type": "integer"
+                                                },
+                                                "blog_posts": {
+                                                    "type": "integer"
+                                                },
+                                                "properties": {
+                                                    "type": "integer"
+                                                },
+                                                "featured_properties": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "recent_properties": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Property"
+                                            }
+                                        },
+                                        "recent_blog_posts": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/BlogPost"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/drafts": {
+            "post": {
+                "tags": [
+                    "Drafts"
+                ],
+                "summary": "Save blog post draft",
+                "description": "Create or update a blog post draft for autosave functionality",
+                "operationId": "6e7549d3f56de79d146dbed4e097e7d9",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "id": {
+                                        "description": "Draft ID to update (optional)",
+                                        "type": "integer"
+                                    },
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "subtitle": {
+                                        "type": "string"
+                                    },
+                                    "excerpt": {
+                                        "type": "string"
+                                    },
+                                    "content": {
+                                        "type": "string"
+                                    },
+                                    "category": {
+                                        "type": "string"
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "meta_title": {
+                                        "type": "string"
+                                    },
+                                    "meta_description": {
+                                        "type": "string"
+                                    },
+                                    "canonical_url": {
+                                        "type": "string"
+                                    },
+                                    "is_featured": {
+                                        "type": "boolean"
+                                    },
+                                    "status": {
+                                        "type": "string"
+                                    },
+                                    "published_at": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Draft saved",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "title": {
+                                            "type": "string"
+                                        },
+                                        "user_id": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/drafts/{id}": {
+            "get": {
+                "tags": [
+                    "Drafts"
+                ],
+                "summary": "Get draft by ID",
+                "description": "Retrieve a saved blog post draft",
+                "operationId": "2c1b5ec5b8094ed16a2f99d6c2e95833",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Draft ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Draft details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "title": {
+                                            "type": "string"
+                                        },
+                                        "content": {
+                                            "type": "string"
+                                        },
+                                        "user_id": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Draft not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/inquiries": {
+            "get": {
+                "tags": [
+                    "Inquiries"
+                ],
+                "summary": "Get all inquiries",
+                "description": "Retrieve paginated list of inquiries with optional filters. Authenticated users only.",
+                "operationId": "313832c486d3886ccad424c2c7f780e9",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "responded",
+                                "closed"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Filter by inquiry type",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "property-inquiry",
+                                "investment-consultation",
+                                "smart-home",
+                                "interior-design",
+                                "general"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search in name, email, subject, or message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated list of inquiries",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Inquiry"
+                                            }
+                                        },
+                                        "current_page": {
+                                            "type": "integer"
+                                        },
+                                        "total": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Inquiries"
+                ],
+                "summary": "Submit a new inquiry",
+                "description": "Submit a general or property-specific inquiry. Public endpoint.",
+                "operationId": "1cd5d3c54f3754afa8ae1e8c3636ae86",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "subject",
+                                    "message",
+                                    "type"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+1234567890"
+                                    },
+                                    "subject": {
+                                        "type": "string",
+                                        "example": "Inquiry about property"
+                                    },
+                                    "message": {
+                                        "type": "string",
+                                        "example": "I'm interested in this property..."
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "property-inquiry",
+                                            "investment-consultation",
+                                            "smart-home",
+                                            "interior-design",
+                                            "general"
+                                        ],
+                                        "example": "property-inquiry"
+                                    },
+                                    "property_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Inquiry submitted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Inquiry submitted successfully. We will get back to you soon."
+                                        },
+                                        "inquiry": {
+                                            "$ref": "#/components/schemas/Inquiry"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/inquiries/{inquiry}": {
+            "get": {
+                "tags": [
+                    "Inquiries"
+                ],
+                "summary": "Get inquiry details",
+                "description": "Retrieve details of a single inquiry",
+                "operationId": "6fa6518d09c6227a4e7dcc3a3949f7ca",
+                "parameters": [
+                    {
+                        "name": "inquiry",
+                        "in": "path",
+                        "description": "Inquiry ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Inquiry details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "inquiry": {
+                                            "$ref": "#/components/schemas/Inquiry"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Inquiry not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Inquiries"
+                ],
+                "summary": "Update inquiry status",
+                "description": "Update inquiry status and add response message",
+                "operationId": "e7b04cdf9e736ec126c4ae07eb9c0b51",
+                "parameters": [
+                    {
+                        "name": "inquiry",
+                        "in": "path",
+                        "description": "Inquiry ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "responded",
+                                            "closed"
+                                        ]
+                                    },
+                                    "response_message": {
+                                        "type": "string",
+                                        "example": "Thank you for your inquiry..."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Inquiry updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Inquiry updated successfully"
+                                        },
+                                        "inquiry": {
+                                            "$ref": "#/components/schemas/Inquiry"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Inquiry not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Inquiries"
+                ],
+                "summary": "Delete inquiry",
+                "description": "Delete an inquiry",
+                "operationId": "2f5635eb324a04e1284c2e2a9c369dbc",
+                "parameters": [
+                    {
+                        "name": "inquiry",
+                        "in": "path",
+                        "description": "Inquiry ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Inquiry deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Inquiry deleted successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Inquiry not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/inquiries/statistics": {
+            "get": {
+                "tags": [
+                    "Inquiries"
+                ],
+                "summary": "Get inquiry statistics",
+                "description": "Retrieve statistics about inquiries including counts by status and type",
+                "operationId": "7f7234882dc23eef911154dcd90aa7c6",
+                "responses": {
+                    "200": {
+                        "description": "Inquiry statistics",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "total": {
+                                            "type": "integer"
+                                        },
+                                        "pending": {
+                                            "type": "integer"
+                                        },
+                                        "responded": {
+                                            "type": "integer"
+                                        },
+                                        "closed": {
+                                            "type": "integer"
+                                        },
+                                        "by_type": {
+                                            "type": "object"
+                                        },
+                                        "recent": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/notifications": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get user notifications",
+                "description": "Retrieve list of notifications for authenticated user, sorted by unread first",
+                "operationId": "b1274a2aaae8a4295a7e1925e8d8090f",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Maximum number of results (1-100)",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of notifications",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "user_id": {
+                                                "type": "integer"
+                                            },
+                                            "title": {
+                                                "type": "string"
+                                            },
+                                            "body": {
+                                                "type": "string"
+                                            },
+                                            "data": {
+                                                "type": "object"
+                                            },
+                                            "read_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "nullable": true
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/notifications/unread-count": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get unread notification count",
+                "description": "Retrieve count of unread notifications for authenticated user",
+                "operationId": "85697ee523a5dace428185c95efb9f2f",
+                "responses": {
+                    "200": {
+                        "description": "Unread count",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "unread": {
+                                            "type": "integer",
+                                            "example": 5
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/notifications/{id}/read": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Mark notification as read",
+                "description": "Mark a single notification as read",
+                "operationId": "50f7a85105115012c73fb8dc245f47c1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Notification ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notification marked as read",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Marked as read"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Notification not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/notifications/read-all": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Mark all notifications as read",
+                "description": "Mark all unread notifications as read for authenticated user",
+                "operationId": "4513779e1e0f406b578106c47696bc2c",
+                "responses": {
+                    "200": {
+                        "description": "All notifications marked as read",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "All notifications marked as read"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/properties": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Get all approved properties",
+                "description": "Retrieve list of all approved properties with agent information",
+                "operationId": "13fea573f37f88995828f064090ca444",
+                "responses": {
+                    "200": {
+                        "description": "List of approved properties",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Property"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Create new property",
+                "description": "Create a new property listing. Agents create pending properties, admins create approved properties.",
+                "operationId": "3b0a02424a0675093cdb9e98d3936ccb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "location",
+                                    "price",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Luxury Villa"
+                                    },
+                                    "location": {
+                                        "type": "string",
+                                        "example": "123 Main St, City"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "123 Main St, City"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "example": 500000
+                                    },
+                                    "bedrooms": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "bathrooms": {
+                                        "type": "integer",
+                                        "example": 3
+                                    },
+                                    "size": {
+                                        "type": "number",
+                                        "example": 3500
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "example": "villa"
+                                    },
+                                    "is_smart_home": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Beautiful villa with pool"
+                                    },
+                                    "agent_name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "agent_phone": {
+                                        "type": "string",
+                                        "example": "+1234567890"
+                                    },
+                                    "agent_email": {
+                                        "type": "string",
+                                        "example": "agent@example.com"
+                                    },
+                                    "images": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Property created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Property created successfully."
+                                        },
+                                        "property": {
+                                            "$ref": "#/components/schemas/Property"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/properties/featured": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Get featured properties",
+                "description": "Retrieve up to 6 featured approved properties",
+                "operationId": "0b6254e3693c2e2acda6030e446cb507",
+                "responses": {
+                    "200": {
+                        "description": "List of featured properties",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Property"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/properties/{property}": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Get single property details",
+                "description": "Retrieve details of a single approved property with agent information",
+                "operationId": "9db32941fb40175b5a6c5d4f698925b7",
+                "parameters": [
+                    {
+                        "name": "property",
+                        "in": "path",
+                        "description": "Property ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Property details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Property"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Property not found"
+                    }
+                }
+            }
+        },
+        "/properties/{property}/view": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "View property (authenticated)",
+                "description": "Authenticated users can view approved properties or their own pending properties. Admins can view all properties.",
+                "operationId": "67185fb5055fb2d284fad4755ce4bce1",
+                "parameters": [
+                    {
+                        "name": "property",
+                        "in": "path",
+                        "description": "Property ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Property details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Property"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Property not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/properties/my": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Get my properties",
+                "description": "Get all properties for the authenticated user. Admins see all properties, agents see only their own.",
+                "operationId": "19a2d5b90bd7c9c9a0ce8c17800b492e",
+                "responses": {
+                    "200": {
+                        "description": "List of user's properties",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Property"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/properties/{id}": {
+            "put": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Update property",
+                "description": "Update an existing property. Agents can update their own properties, admins can update any property.",
+                "operationId": "b9f37d05cc2677812697919dcddb4ac4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Property ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Updated Villa"
+                                    },
+                                    "location": {
+                                        "type": "string",
+                                        "example": "456 Updated St"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "example": 550000
+                                    },
+                                    "bedrooms": {
+                                        "type": "integer",
+                                        "example": 6
+                                    },
+                                    "bathrooms": {
+                                        "type": "integer",
+                                        "example": 4
+                                    },
+                                    "size": {
+                                        "type": "number",
+                                        "example": 4000
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "example": "villa"
+                                    },
+                                    "is_smart_home": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Updated description"
+                                    },
+                                    "status": {
+                                        "description": "Admin only",
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "approved",
+                                            "rejected"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Property updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Property updated successfully."
+                                        },
+                                        "property": {
+                                            "$ref": "#/components/schemas/Property"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Property not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Delete property",
+                "description": "Delete a property. Agents can delete their own properties, admins can delete any property.",
+                "operationId": "229f3fda53a8ee3d2d8ab80ba10774ac",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Property ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Property deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Property deleted successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Property not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/properties/{id}/approve": {
+            "post": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Approve property (Admin only)",
+                "description": "Approve a pending property listing. Sends notification to the agent.",
+                "operationId": "352a4a21044717a201cdffcee8ebc90c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Property ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Property approved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Property approved successfully."
+                                        },
+                                        "property": {
+                                            "$ref": "#/components/schemas/Property"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin only"
+                    },
+                    "404": {
+                        "description": "Property not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/properties/{id}/reject": {
+            "post": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Reject property (Admin only)",
+                "description": "Reject a pending property listing",
+                "operationId": "0717bf70572f88fe69c1db3da8fee452",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Property ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Property rejected successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Property rejected successfully."
+                                        },
+                                        "property": {
+                                            "$ref": "#/components/schemas/Property"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin only"
+                    },
+                    "404": {
+                        "description": "Property not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/properties/pending": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Get pending properties (Admin only)",
+                "description": "Retrieve all properties awaiting approval",
+                "operationId": "2511b6626e05b83f6e6fc4fe24acee37",
+                "responses": {
+                    "200": {
+                        "description": "List of pending properties",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Property"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin only"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/properties/approved": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Get approved properties",
+                "description": "Retrieve all approved properties with agent information",
+                "operationId": "5be87a97c813d336a390897e887fcca7",
+                "responses": {
+                    "200": {
+                        "description": "List of approved properties",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Property"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/properties/agent/{agentId}": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Get properties by agent",
+                "description": "Retrieve all approved properties listed by a specific agent",
+                "operationId": "c01c0340a0968dbfc824194d7b4e2d91",
+                "parameters": [
+                    {
+                        "name": "agentId",
+                        "in": "path",
+                        "description": "Agent User ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of agent's properties",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Property"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/push/public-key": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get VAPID public key",
+                "description": "Retrieve the VAPID public key for push notification subscriptions",
+                "operationId": "32b6e7278a861fe923d44d12b435c3e6",
+                "responses": {
+                    "200": {
+                        "description": "VAPID public key",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "key": {
+                                            "type": "string",
+                                            "example": "BKx...abc"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/push/subscribe": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Subscribe to push notifications",
+                "description": "Register a push notification subscription for authenticated user",
+                "operationId": "12194162d2704a222fefac4e63570218",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "endpoint",
+                                    "keys"
+                                ],
+                                "properties": {
+                                    "endpoint": {
+                                        "type": "string",
+                                        "example": "https://fcm.googleapis.com/..."
+                                    },
+                                    "keys": {
+                                        "properties": {
+                                            "p256dh": {
+                                                "type": "string"
+                                            },
+                                            "auth": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Subscription created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "endpoint": {
+                                            "type": "string"
+                                        },
+                                        "user_id": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/push/unsubscribe": {
+            "delete": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Unsubscribe from push notifications",
+                "description": "Remove a push notification subscription",
+                "operationId": "b12df6f7dcfdf7ac909919ae091a6d2a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "endpoint"
+                                ],
+                                "properties": {
+                                    "endpoint": {
+                                        "type": "string",
+                                        "example": "https://fcm.googleapis.com/..."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Unsubscribed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unsubscribed"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/push/test": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Test push notification",
+                "description": "Send a test push notification to verify subscription",
+                "operationId": "e7b2b1c04ffac4d5e68a4fc44e4707d6",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "endpoint"
+                                ],
+                                "properties": {
+                                    "endpoint": {
+                                        "type": "string",
+                                        "example": "https://fcm.googleapis.com/..."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Test notification sent",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Subscription not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/push/broadcast": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Broadcast push notification (Admin)",
+                "description": "Send a push notification to all subscribed users",
+                "operationId": "375bfcefd01470d2a0c713e795febfa3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "body"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "maxLength": 120,
+                                        "example": "New Update"
+                                    },
+                                    "body": {
+                                        "type": "string",
+                                        "maxLength": 300,
+                                        "example": "Check out our latest features!"
+                                    },
+                                    "url": {
+                                        "type": "string",
+                                        "format": "url",
+                                        "example": "https://archsmart.com/news"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Broadcast queued",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Broadcast queued"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "VAPID keys not set"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/health": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "API health check",
+                "description": "Check if the API is running and responding",
+                "operationId": "00f0e7382ed0fe4920204f39c1b70bea",
+                "responses": {
+                    "200": {
+                        "description": "API is healthy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "ok"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "ArchSmart Backend and API is running"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "env": {
+                                            "type": "string",
+                                            "example": "local"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/tags": {
+            "get": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Get blog post tags",
+                "description": "Retrieve unique tags from all blog posts, with optional search filter",
+                "operationId": "566a70c4a8ca7c7dd9a6d666f64728a6",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Search query for tags",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of tags",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "example": [
+                                    "real-estate",
+                                    "tips",
+                                    "buying",
+                                    "selling"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/forgot-password": {
             "post": {
                 "tags": [
@@ -485,6 +3220,62 @@
                     }
                 }
             }
+        },
+        "/media/{folder}/{filename}": {
+            "get": {
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Serve media files",
+                "description": "Serve media files from allowed folders (profile_pictures, properties, blogs, services, images)",
+                "operationId": "489ae0940480f1945881429ca608c583",
+                "parameters": [
+                    {
+                        "name": "folder",
+                        "in": "path",
+                        "description": "Media folder name",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "profile_pictures",
+                                "properties",
+                                "blogs",
+                                "services",
+                                "images"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "filename",
+                        "in": "path",
+                        "description": "File path/name (can include subdirectories)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File served successfully",
+                        "content": {
+                            "image/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Folder not allowed"
+                    },
+                    "404": {
+                        "description": "File not found"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -492,21 +3283,31 @@
             "User": {
                 "title": "User",
                 "description": "User model",
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "role"
+                ],
                 "properties": {
                     "id": {
+                        "description": "User ID",
                         "type": "integer",
                         "example": 1
                     },
                     "name": {
+                        "description": "User's full name",
                         "type": "string",
                         "example": "John Doe"
                     },
                     "email": {
+                        "description": "User's email address",
                         "type": "string",
                         "format": "email",
                         "example": "john@example.com"
                     },
                     "role": {
+                        "description": "User role",
                         "type": "string",
                         "enum": [
                             "admin",
@@ -516,89 +3317,113 @@
                         "example": "user"
                     },
                     "is_agent": {
+                        "description": "Whether user is an agent",
                         "type": "boolean",
                         "example": false
                     },
                     "is_admin": {
+                        "description": "Whether user is an admin",
                         "type": "boolean",
                         "example": false
                     },
                     "is_approved": {
+                        "description": "Whether user account is approved",
                         "type": "boolean",
                         "example": true
                     },
                     "phone": {
+                        "description": "User's phone number",
                         "type": "string",
                         "example": "+1234567890",
                         "nullable": true
                     },
                     "bio": {
+                        "description": "User's biography",
                         "type": "string",
-                        "example": "Experienced real estate agent",
+                        "example": "Experienced real estate agent with 10+ years",
                         "nullable": true
                     },
                     "company": {
+                        "description": "User's company name",
                         "type": "string",
                         "example": "ArchSmart Realty",
                         "nullable": true
                     },
                     "profile_picture": {
+                        "description": "Path to profile picture",
                         "type": "string",
                         "example": "profile_pictures/user1.jpg",
                         "nullable": true
                     },
                     "created_at": {
+                        "description": "Account creation timestamp",
                         "type": "string",
                         "format": "date-time",
-                        "example": "2025-01-01T00:00:00Z"
+                        "example": "2025-01-01T00:00:00.000000Z"
                     },
                     "updated_at": {
+                        "description": "Last update timestamp",
                         "type": "string",
                         "format": "date-time",
-                        "example": "2025-01-01T00:00:00Z"
+                        "example": "2025-01-01T00:00:00.000000Z"
                     }
                 },
                 "type": "object"
             },
             "Property": {
                 "title": "Property",
-                "description": "Property model",
+                "description": "Property listing model",
+                "required": [
+                    "id",
+                    "title",
+                    "price",
+                    "status"
+                ],
                 "properties": {
                     "id": {
+                        "description": "Property ID",
                         "type": "integer",
                         "example": 1
                     },
                     "title": {
+                        "description": "Property title",
                         "type": "string",
                         "example": "Luxury Villa in Downtown"
                     },
                     "description": {
+                        "description": "Property description",
                         "type": "string",
-                        "example": "Beautiful 5 bedroom villa with pool"
+                        "example": "Beautiful 5 bedroom villa with pool and garden"
                     },
                     "address": {
+                        "description": "Property address",
                         "type": "string",
-                        "example": "123 Main St, City"
+                        "example": "123 Main St, City, Country"
                     },
                     "price": {
+                        "description": "Property price",
                         "type": "number",
                         "format": "float",
                         "example": 500000
                     },
                     "bedrooms": {
+                        "description": "Number of bedrooms",
                         "type": "integer",
                         "example": 5
                     },
                     "bathrooms": {
+                        "description": "Number of bathrooms",
                         "type": "integer",
                         "example": 3
                     },
                     "area": {
+                        "description": "Property area in square feet",
                         "type": "number",
                         "format": "float",
                         "example": 3500
                     },
                     "property_type": {
+                        "description": "Type of property",
                         "type": "string",
                         "enum": [
                             "house",
@@ -610,6 +3435,7 @@
                         "example": "villa"
                     },
                     "listing_type": {
+                        "description": "Listing type",
                         "type": "string",
                         "enum": [
                             "sale",
@@ -618,6 +3444,7 @@
                         "example": "sale"
                     },
                     "status": {
+                        "description": "Property approval status",
                         "type": "string",
                         "enum": [
                             "pending",
@@ -627,10 +3454,12 @@
                         "example": "approved"
                     },
                     "featured": {
+                        "description": "Whether property is featured",
                         "type": "boolean",
                         "example": false
                     },
                     "images": {
+                        "description": "Property images",
                         "type": "array",
                         "items": {
                             "type": "string"
@@ -641,6 +3470,7 @@
                         ]
                     },
                     "agent_id": {
+                        "description": "ID of the agent who listed the property",
                         "type": "integer",
                         "example": 2
                     },
@@ -648,12 +3478,16 @@
                         "$ref": "#/components/schemas/User"
                     },
                     "created_at": {
+                        "description": "Creation timestamp",
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date-time",
+                        "example": "2025-01-01T00:00:00.000000Z"
                     },
                     "updated_at": {
+                        "description": "Last update timestamp",
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date-time",
+                        "example": "2025-01-01T00:00:00.000000Z"
                     }
                 },
                 "type": "object"
@@ -661,34 +3495,46 @@
             "BlogPost": {
                 "title": "Blog Post",
                 "description": "Blog post model",
+                "required": [
+                    "id",
+                    "title",
+                    "content"
+                ],
                 "properties": {
                     "id": {
+                        "description": "Blog post ID",
                         "type": "integer",
                         "example": 1
                     },
                     "title": {
+                        "description": "Blog post title",
                         "type": "string",
                         "example": "10 Tips for First-Time Home Buyers"
                     },
                     "slug": {
+                        "description": "URL-friendly slug",
                         "type": "string",
                         "example": "10-tips-first-time-home-buyers-abc123"
                     },
                     "content": {
+                        "description": "HTML content of the blog post",
                         "type": "string",
-                        "example": "<p>Blog content with HTML...</p>"
+                        "example": "<p>Blog content with HTML formatting...</p>"
                     },
                     "excerpt": {
+                        "description": "Short excerpt or summary",
                         "type": "string",
-                        "example": "Learn essential tips...",
+                        "example": "Learn essential tips for buying your first home...",
                         "nullable": true
                     },
                     "featured_image": {
+                        "description": "URL to featured image",
                         "type": "string",
-                        "example": "https://example.com/image.jpg",
+                        "example": "https://example.com/images/blog-post.jpg",
                         "nullable": true
                     },
                     "author_id": {
+                        "description": "ID of the author",
                         "type": "integer",
                         "example": 1
                     },
@@ -696,6 +3542,7 @@
                         "$ref": "#/components/schemas/User"
                     },
                     "tags": {
+                        "description": "Blog post tags",
                         "type": "array",
                         "items": {
                             "type": "string"
@@ -707,21 +3554,28 @@
                         ]
                     },
                     "views": {
+                        "description": "Number of views",
                         "type": "integer",
                         "example": 150
                     },
                     "published_at": {
+                        "description": "Publication timestamp",
                         "type": "string",
                         "format": "date-time",
+                        "example": "2025-01-01T00:00:00.000000Z",
                         "nullable": true
                     },
                     "created_at": {
+                        "description": "Creation timestamp",
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date-time",
+                        "example": "2025-01-01T00:00:00.000000Z"
                     },
                     "updated_at": {
+                        "description": "Last update timestamp",
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date-time",
+                        "example": "2025-01-01T00:00:00.000000Z"
                     }
                 },
                 "type": "object"
@@ -729,48 +3583,72 @@
             "Inquiry": {
                 "title": "Inquiry",
                 "description": "Customer inquiry model",
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "message"
+                ],
                 "properties": {
                     "id": {
+                        "description": "Inquiry ID",
                         "type": "integer",
                         "example": 1
                     },
                     "name": {
+                        "description": "Customer name",
                         "type": "string",
                         "example": "Jane Doe"
                     },
                     "email": {
+                        "description": "Customer email",
                         "type": "string",
                         "format": "email",
                         "example": "jane@example.com"
                     },
                     "phone": {
+                        "description": "Customer phone number",
                         "type": "string",
                         "example": "+1234567890"
                     },
                     "message": {
+                        "description": "Inquiry message",
                         "type": "string",
-                        "example": "I'm interested in property #123"
+                        "example": "I'm interested in property #123 and would like more information"
                     },
                     "property_id": {
+                        "description": "Related property ID",
                         "type": "integer",
                         "example": 123,
                         "nullable": true
                     },
                     "status": {
+                        "description": "Inquiry status",
                         "type": "string",
-                        "example": "new"
+                        "enum": [
+                            "pending",
+                            "responded",
+                            "closed"
+                        ],
+                        "example": "pending"
                     },
                     "notes": {
+                        "description": "Internal notes",
                         "type": "string",
+                        "example": "Follow up needed",
                         "nullable": true
                     },
                     "created_at": {
+                        "description": "Creation timestamp",
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date-time",
+                        "example": "2025-01-01T00:00:00.000000Z"
                     },
                     "updated_at": {
+                        "description": "Last update timestamp",
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date-time",
+                        "example": "2025-01-01T00:00:00.000000Z"
                     }
                 },
                 "type": "object"
@@ -778,39 +3656,67 @@
             "Consultation": {
                 "title": "Consultation",
                 "description": "Consultation request model",
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "phone"
+                ],
                 "properties": {
                     "id": {
+                        "description": "Consultation ID",
                         "type": "integer",
                         "example": 1
                     },
                     "name": {
+                        "description": "Customer name",
                         "type": "string",
                         "example": "John Smith"
                     },
                     "email": {
+                        "description": "Customer email",
                         "type": "string",
                         "format": "email",
                         "example": "john@example.com"
                     },
                     "phone": {
+                        "description": "Customer phone number",
                         "type": "string",
                         "example": "+1234567890"
                     },
                     "service": {
+                        "description": "Service requested",
                         "type": "string",
-                        "example": "Smart Home Installation"
+                        "example": "Smart Home Installation",
+                        "nullable": true
                     },
                     "message": {
+                        "description": "Consultation message",
                         "type": "string",
-                        "example": "Need consultation for smart home"
+                        "example": "I need consultation for smart home integration",
+                        "nullable": true
+                    },
+                    "status": {
+                        "description": "Consultation status",
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "responded",
+                            "closed"
+                        ],
+                        "example": "pending"
                     },
                     "created_at": {
+                        "description": "Creation timestamp",
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date-time",
+                        "example": "2025-01-01T00:00:00.000000Z"
                     },
                     "updated_at": {
+                        "description": "Last update timestamp",
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date-time",
+                        "example": "2025-01-01T00:00:00.000000Z"
                     }
                 },
                 "type": "object"
@@ -855,8 +3761,8 @@
         "securitySchemes": {
             "sanctum": {
                 "type": "http",
-                "description": "Enter token in format: Bearer {token}",
-                "bearerFormat": "JWT",
+                "description": "Enter your Bearer token (the token will be automatically prefixed with 'Bearer ')",
+                "bearerFormat": "Token",
                 "scheme": "bearer"
             }
         }
@@ -865,6 +3771,54 @@
         {
             "name": "Authentication",
             "description": "User authentication endpoints"
+        },
+        {
+            "name": "Properties",
+            "description": "Property management endpoints"
+        },
+        {
+            "name": "Blog Posts",
+            "description": "Blog post management endpoints"
+        },
+        {
+            "name": "Admin",
+            "description": "Admin-only endpoints"
+        },
+        {
+            "name": "Dashboard",
+            "description": "Dashboard and analytics endpoints"
+        },
+        {
+            "name": "Inquiries",
+            "description": "Customer inquiry management"
+        },
+        {
+            "name": "Consultations",
+            "description": "Consultation request endpoints"
+        },
+        {
+            "name": "Notifications",
+            "description": "Push notifications and in-app notifications"
+        },
+        {
+            "name": "Tags",
+            "description": "Blog post tags management"
+        },
+        {
+            "name": "Drafts",
+            "description": "Blog post draft management"
+        },
+        {
+            "name": "Comments",
+            "description": "Blog post comments"
+        },
+        {
+            "name": "Media",
+            "description": "Media file management and serving"
+        },
+        {
+            "name": "Health",
+            "description": "API health check endpoints"
         }
     ]
 }

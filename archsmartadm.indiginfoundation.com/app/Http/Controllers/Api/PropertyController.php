@@ -19,6 +19,21 @@ class PropertyController extends Controller
 {
     /**
      * 🏡 Public: Get all approved properties
+     * 
+     * @OA\Get(
+     *     path="/properties",
+     *     tags={"Properties"},
+     *     summary="Get all approved properties",
+     *     description="Retrieve list of all approved properties with agent information",
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of approved properties",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Property")
+     *         )
+     *     )
+     * )
      */
     public function index()
     {
@@ -37,6 +52,21 @@ class PropertyController extends Controller
 
     /**
      * ⭐ Public: Get featured properties
+     * 
+     * @OA\Get(
+     *     path="/properties/featured",
+     *     tags={"Properties"},
+     *     summary="Get featured properties",
+     *     description="Retrieve up to 6 featured approved properties",
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of featured properties",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Property")
+     *         )
+     *     )
+     * )
      */
     public function featured()
     {
@@ -56,6 +86,26 @@ class PropertyController extends Controller
 
     /**
      * 🔍 Show single property
+     * 
+     * @OA\Get(
+     *     path="/properties/{property}",
+     *     tags={"Properties"},
+     *     summary="Get single property details",
+     *     description="Retrieve details of a single approved property with agent information",
+     *     @OA\Parameter(
+     *         name="property",
+     *         in="path",
+     *         required=true,
+     *         description="Property ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Property details",
+     *         @OA\JsonContent(ref="#/components/schemas/Property")
+     *     ),
+     *     @OA\Response(response=404, description="Property not found")
+     * )
      */
     public function show(Property $property)
     {
@@ -71,6 +121,28 @@ class PropertyController extends Controller
 
     /**
      * 🔍 View property (authenticated - can view own pending properties)
+     * 
+     * @OA\Get(
+     *     path="/properties/{property}/view",
+     *     tags={"Properties"},
+     *     summary="View property (authenticated)",
+     *     description="Authenticated users can view approved properties or their own pending properties. Admins can view all properties.",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="property",
+     *         in="path",
+     *         required=true,
+     *         description="Property ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Property details",
+     *         @OA\JsonContent(ref="#/components/schemas/Property")
+     *     ),
+     *     @OA\Response(response=403, description="Forbidden"),
+     *     @OA\Response(response=404, description="Property not found")
+     * )
      */
     public function viewProperty(Property $property)
     {
@@ -102,6 +174,23 @@ class PropertyController extends Controller
 
     /**
      * 🧑‍💼 Agent or Admin: Get own properties
+     * 
+     * @OA\Get(
+     *     path="/properties/my",
+     *     tags={"Properties"},
+     *     summary="Get my properties",
+     *     description="Get all properties for the authenticated user. Admins see all properties, agents see only their own.",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of user's properties",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Property")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
      */
     public function myProperties()
     {
@@ -127,6 +216,51 @@ class PropertyController extends Controller
 
     /**
      * ➕ Create new property (Agent or Admin)
+     * 
+     * @OA\Post(
+     *     path="/properties",
+     *     tags={"Properties"},
+     *     summary="Create new property",
+     *     description="Create a new property listing. Agents create pending properties, admins create approved properties.",
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"title", "location", "price", "description"},
+     *                 @OA\Property(property="title", type="string", example="Luxury Villa"),
+     *                 @OA\Property(property="location", type="string", example="123 Main St, City"),
+     *                 @OA\Property(property="address", type="string", example="123 Main St, City"),
+     *                 @OA\Property(property="price", type="number", example=500000),
+     *                 @OA\Property(property="bedrooms", type="integer", example=5),
+     *                 @OA\Property(property="bathrooms", type="integer", example=3),
+     *                 @OA\Property(property="size", type="number", example=3500),
+     *                 @OA\Property(property="type", type="string", example="villa"),
+     *                 @OA\Property(property="is_smart_home", type="boolean", example=false),
+     *                 @OA\Property(property="description", type="string", example="Beautiful villa with pool"),
+     *                 @OA\Property(property="agent_name", type="string", example="John Doe"),
+     *                 @OA\Property(property="agent_phone", type="string", example="+1234567890"),
+     *                 @OA\Property(property="agent_email", type="string", example="agent@example.com"),
+     *                 @OA\Property(
+     *                     property="images",
+     *                     type="array",
+     *                     @OA\Items(type="string", format="binary")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Property created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Property created successfully."),
+     *             @OA\Property(property="property", ref="#/components/schemas/Property")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function store(Request $request)
     {
@@ -211,6 +345,45 @@ class PropertyController extends Controller
 
     /**
      * ✏️ Update property
+     * 
+     * @OA\Put(
+     *     path="/properties/{id}",
+     *     tags={"Properties"},
+     *     summary="Update property",
+     *     description="Update an existing property. Agents can update their own properties, admins can update any property.",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Property ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="title", type="string", example="Updated Villa"),
+     *             @OA\Property(property="location", type="string", example="456 Updated St"),
+     *             @OA\Property(property="price", type="number", example=550000),
+     *             @OA\Property(property="bedrooms", type="integer", example=6),
+     *             @OA\Property(property="bathrooms", type="integer", example=4),
+     *             @OA\Property(property="size", type="number", example=4000),
+     *             @OA\Property(property="type", type="string", example="villa"),
+     *             @OA\Property(property="is_smart_home", type="boolean", example=true),
+     *             @OA\Property(property="description", type="string", example="Updated description"),
+     *             @OA\Property(property="status", type="string", enum={"pending", "approved", "rejected"}, description="Admin only")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Property updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Property updated successfully."),
+     *             @OA\Property(property="property", ref="#/components/schemas/Property")
+     *         )
+     *     ),
+     *     @OA\Response(response=403, description="Forbidden"),
+     *     @OA\Response(response=404, description="Property not found")
+     * )
      */
     public function update(Request $request, $id)
     {
@@ -285,6 +458,30 @@ class PropertyController extends Controller
 
     /**
      * 🗑️ Delete property
+     * 
+     * @OA\Delete(
+     *     path="/properties/{id}",
+     *     tags={"Properties"},
+     *     summary="Delete property",
+     *     description="Delete a property. Agents can delete their own properties, admins can delete any property.",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Property ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Property deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Property deleted successfully")
+     *         )
+     *     ),
+     *     @OA\Response(response=403, description="Forbidden"),
+     *     @OA\Response(response=404, description="Property not found")
+     * )
      */
     public function destroy($id)
     {
@@ -309,6 +506,31 @@ class PropertyController extends Controller
 
     /**
      * ✅ Approve property
+     * 
+     * @OA\Post(
+     *     path="/properties/{id}/approve",
+     *     tags={"Properties"},
+     *     summary="Approve property (Admin only)",
+     *     description="Approve a pending property listing. Sends notification to the agent.",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Property ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Property approved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Property approved successfully."),
+     *             @OA\Property(property="property", ref="#/components/schemas/Property")
+     *         )
+     *     ),
+     *     @OA\Response(response=403, description="Forbidden - Admin only"),
+     *     @OA\Response(response=404, description="Property not found")
+     * )
      */
     public function approve($id)
     {
@@ -380,6 +602,31 @@ class PropertyController extends Controller
 
     /**
      * 🚫 Reject property
+     * 
+     * @OA\Post(
+     *     path="/properties/{id}/reject",
+     *     tags={"Properties"},
+     *     summary="Reject property (Admin only)",
+     *     description="Reject a pending property listing",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Property ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Property rejected successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Property rejected successfully."),
+     *             @OA\Property(property="property", ref="#/components/schemas/Property")
+     *         )
+     *     ),
+     *     @OA\Response(response=403, description="Forbidden - Admin only"),
+     *     @OA\Response(response=404, description="Property not found")
+     * )
      */
     public function reject($id)
     {
@@ -401,6 +648,23 @@ class PropertyController extends Controller
 
     /**
      * ⏳ Pending properties (Admin only)
+     * 
+     * @OA\Get(
+     *     path="/properties/pending",
+     *     tags={"Properties"},
+     *     summary="Get pending properties (Admin only)",
+     *     description="Retrieve all properties awaiting approval",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of pending properties",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Property")
+     *         )
+     *     ),
+     *     @OA\Response(response=403, description="Forbidden - Admin only")
+     * )
      */
     public function pending()
     {
@@ -424,6 +688,21 @@ class PropertyController extends Controller
 
     /**
      * 🟢 Approved properties (Public)
+     * 
+     * @OA\Get(
+     *     path="/properties/approved",
+     *     tags={"Properties"},
+     *     summary="Get approved properties",
+     *     description="Retrieve all approved properties with agent information",
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of approved properties",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Property")
+     *         )
+     *     )
+     * )
      */
     public function approved()
     {
@@ -442,6 +721,28 @@ class PropertyController extends Controller
 
     /**
      * 🧑‍💼 Get all approved properties by a specific agent (Public)
+     * 
+     * @OA\Get(
+     *     path="/properties/agent/{agentId}",
+     *     tags={"Properties"},
+     *     summary="Get properties by agent",
+     *     description="Retrieve all approved properties listed by a specific agent",
+     *     @OA\Parameter(
+     *         name="agentId",
+     *         in="path",
+     *         required=true,
+     *         description="Agent User ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of agent's properties",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Property")
+     *         )
+     *     )
+     * )
      */
     public function byAgent($agentId)
     {

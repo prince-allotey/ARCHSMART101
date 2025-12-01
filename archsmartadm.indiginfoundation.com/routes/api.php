@@ -13,6 +13,8 @@ use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\DraftController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\PushSubscriptionController;
+use App\Http\Controllers\Api\PaystackController;
+use App\Http\Controllers\Api\AdvertRequestController;
 use App\Http\Controllers\Api\NotificationController;
 /*
 |--------------------------------------------------------------------------
@@ -195,3 +197,25 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::put('/consultations/{consultation}', [ConsultationController::class, 'respond']);
 });
 Route::post('/consultations', [ConsultationController::class, 'store']);
+
+/*
+|--------------------------------------------------------------------------
+| 💳 PAYSTACK PAYMENTS
+|--------------------------------------------------------------------------
+*/
+Route::post('/paystack/verify', [PaystackController::class, 'verify']);
+
+/*
+|--------------------------------------------------------------------------
+| 📢 ADVERT REQUESTS
+|--------------------------------------------------------------------------
+*/
+// Public: submit advert request
+Route::post('/advert-requests', [AdvertRequestController::class, 'store']);
+
+// Admin: list, approve/reject, mark as paid
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    Route::get('/advert-requests', [AdvertRequestController::class, 'index']);
+    Route::patch('/advert-requests/{id}/status', [AdvertRequestController::class, 'updateStatus']);
+    Route::patch('/advert-requests/{id}/mark-paid', [AdvertRequestController::class, 'markPaid']);
+});

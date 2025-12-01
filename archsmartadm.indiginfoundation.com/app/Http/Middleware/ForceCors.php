@@ -62,7 +62,7 @@ class ForceCors
             $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
             $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-CSRF-TOKEN, Accept, Origin');
             $response->headers->set('Access-Control-Expose-Headers', 'Authorization, Content-Type, X-CSRF-TOKEN');
-            $response->headers->set('Access-Control-Max-Age', '3600');
+            $response->headers->set('Access-Control-Max-Age', '0');
         }
 
         return $response;

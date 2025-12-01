@@ -49,26 +49,19 @@ const BlogSection = () => {
   const getImageForPost = (post, index = 0) => {
     try {
       const raw = post?.image || post?.cover_image || null;
-      // If raw contains a filename, check manifest
       if (raw && typeof raw === 'string') {
-        // extract filename portion (strip query/hash)
-        const parts = raw.split('/');
-        const last = parts[parts.length - 1] || raw;
-        const filename = last.split('?')[0].split('#')[0];
-        if (filename && PUBLIC_BLOG_IMAGES && PUBLIC_BLOG_IMAGES.includes(filename)) {
-          return `/images/blogs/${filename}`;
-        }
-        // try resolving to backend/media URL or frontend mapping
-        const resolved = resolveImageUrl(raw);
-        if (resolved) return resolved;
+        // Always use resolveUploadedUrl to avoid double /images/ prefixes
+        const resolved = resolveUploadedUrl(raw);
+        if (resolved && resolved !== raw) return resolved;
       }
 
-      // Deterministic rotating fallback using the public images manifest (or a sensible default)
+      // Deterministic rotating fallback
       const fallbacks = (PUBLIC_BLOG_IMAGES && PUBLIC_BLOG_IMAGES.length > 0) ? PUBLIC_BLOG_IMAGES : ['blog1.jpeg'];
       const pick = fallbacks[index % fallbacks.length];
-      return `/images/blogs/${pick}`;
+      // Use resolveUploadedUrl for consistency
+      return resolveUploadedUrl(`blogs/${pick}`);
     } catch (e) {
-      return '/images/blogs/blog1.jpeg';
+      return resolveUploadedUrl('blogs/blog1.jpeg');
     }
   };
 
@@ -81,7 +74,7 @@ const BlogSection = () => {
       for (let i = 0; i < s.length; i++) seed = (seed * 31 + s.charCodeAt(i)) >>> 0;
     } catch (e) { seed = Date.now(); }
     const idx = (seed + offset) % choices.length;
-    return `/blogs/blog${choices[idx]}.jpeg`;
+    return resolveUploadedUrl(`blogs/blog${choices[idx]}.jpeg`);
   };
 
   const isRepairedDefault = (originalSrc, resolvedUrl) => {
@@ -122,7 +115,7 @@ const BlogSection = () => {
       // Attempt 1: if a local public copy exists, use it
       if (attempts === 1) {
         if (filename && Array.isArray(PUBLIC_BLOG_IMAGES) && PUBLIC_BLOG_IMAGES.includes(filename)) {
-          img.src = `/images/blogs/${filename}`;
+          img.src = resolveUploadedUrl(`blogs/${filename}`);
           return;
         }
         // Try stripping to backend storage path

@@ -13,6 +13,37 @@ class MediaController extends Controller
      * browser receives appropriate CORS headers instead of opaque responses.
      *
      * Allowed folders: profile_pictures, properties, blogs, services, images
+     * 
+     * @OA\Get(
+     *     path="/media/{folder}/{filename}",
+     *     tags={"Media"},
+     *     summary="Serve media files",
+     *     description="Serve media files from allowed folders (profile_pictures, properties, blogs, services, images)",
+     *     @OA\Parameter(
+     *         name="folder",
+     *         in="path",
+     *         required=true,
+     *         description="Media folder name",
+     *         @OA\Schema(type="string", enum={"profile_pictures", "properties", "blogs", "services", "images"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="filename",
+     *         in="path",
+     *         required=true,
+     *         description="File path/name (can include subdirectories)",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="File served successfully",
+     *         @OA\MediaType(
+     *             mediaType="image/*",
+     *             @OA\Schema(type="string", format="binary")
+     *         )
+     *     ),
+     *     @OA\Response(response=403, description="Folder not allowed"),
+     *     @OA\Response(response=404, description="File not found")
+     * )
      */
     public function serve(Request $request, $folder, $filename)
     {

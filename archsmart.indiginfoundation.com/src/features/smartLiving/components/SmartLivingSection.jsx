@@ -10,8 +10,8 @@ export const SmartLivingSection = () => {
       title: "Smart Lighting",
       description:
         "Automated lighting systems that adjust to your daily routine and save energy.",
-    image: "/smartliving/smart-lighting.jpg",
-    link: "/smart-lighting",
+      image: "smartliving/smart-lighting.jpg",
+      link: "/smart-lighting",
      
     },
     {
@@ -19,8 +19,8 @@ export const SmartLivingSection = () => {
       title: "Security Systems",
       description:
         "Advanced home security with smart locks, cameras, and monitoring.",
-    image: "/smartliving/Security.jpg",
-    link: "/security-systems",
+      image: "smartliving/security.jpg",
+      link: "/security-systems",
      
     },
     {
@@ -28,8 +28,8 @@ export const SmartLivingSection = () => {
       title: "Climate Control",
       description:
         "Smart thermostats and HVAC systems for optimal comfort and efficiency.",
-    image: "/smartliving/climate.webp",
-    link: "/climate-control",
+      image: "smartliving/climate.webp",
+      link: "/climate-control",
    
     },
     {
@@ -37,8 +37,8 @@ export const SmartLivingSection = () => {
       title: "Home Automation",
       description:
         "Integrated smart home systems controllable from your smartphone.",
-    image: "/smartliving/home-automation.webp",
-    link: "/home-automation",
+      image: "smartliving/home-automation.webp",
+      link: "/home-automation",
    
     },
   ];
@@ -59,6 +59,8 @@ export const SmartLivingSection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
           {smartFeatures.map((feature, index) => {
             const Icon = feature.icon;
+            // Use assetUrl to resolve correct image path for each feature
+            const imageUrl = assetUrl(feature.image);
             return (
               <div
                 key={index}
@@ -67,7 +69,7 @@ export const SmartLivingSection = () => {
                 <div className="md:flex">
                   <div className="md:w-1/2 relative overflow-hidden">
                     <img
-                      src={assetUrl(feature.image) || resolveUploadedUrl(feature.image)}
+                      src={imageUrl}
                       alt={`Smart Living - ${feature.title}`}
                       className="w-full h-48 md:h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
                       onError={(e) => {
@@ -75,7 +77,7 @@ export const SmartLivingSection = () => {
                           const img = e.currentTarget;
                           if (img.__fallbackApplied) return;
                           img.__fallbackApplied = true;
-                          img.src = assetUrl('/smartliving/home-automation.webp');
+                          img.src = assetUrl('smartliving/security.jpg');
                         } catch (err) {}
                       }}
                     />

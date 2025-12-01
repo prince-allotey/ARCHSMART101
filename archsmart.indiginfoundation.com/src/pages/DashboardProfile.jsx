@@ -13,14 +13,32 @@ export default function DashboardProfile() {
   const [profilePicture, setProfilePicture] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [imageCheck, setImageCheck] = useState(null);
+  // Keep password inputs readonly until user explicitly interacts, to avoid browser autofill
+  const [pwdInputsReadonly, setPwdInputsReadonly] = useState(true);
 
   useEffect(() => {
     if (user) {
-      setForm((f) => ({ ...f, name: user.name || "", email: user.email || "" }));
+      setForm((f) => ({ ...f, name: user.name || "", email: user.email || "", password: "", password_confirmation: "" }));
   // add a cache-busting query so newly uploaded pictures show immediately
   setPreviewUrl(user.profile_picture_url ? resolveUploadedUrl(user.profile_picture_url) + `?t=${Date.now()}` : null);
     }
   }, [user]);
+
+  // Clear any native browser autofill values for password fields on mount so the React-controlled
+  // values remain empty and the UI doesn't show prefilled dots. This mirrors the defensive behavior
+  // used in the settings page to avoid browser autofill interfering with controlled inputs.
+  useEffect(() => {
+    // keep readonly until explicit focus (helps block aggressive autofill)
+    setPwdInputsReadonly(true);
+    setTimeout(() => {
+      try {
+        const passFields = document.querySelectorAll('input[name="password"], input[name="password_confirmation"]');
+        passFields.forEach((el) => {
+          if (el && el instanceof HTMLInputElement) el.value = '';
+        });
+      } catch (e) { /* ignore */ }
+    }, 120);
+  }, []);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -206,11 +224,29 @@ export default function DashboardProfile() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">New Password</label>
-                  <input type="password" name="password" value={form.password} onChange={onChange} className="mt-1 block w-full rounded border px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                  <input
+                    type="password"
+                    name="password"
+                    value={form.password}
+                    onChange={onChange}
+                    onFocus={() => setPwdInputsReadonly(false)}
+                    readOnly={pwdInputsReadonly}
+                    autoComplete="new-password"
+                    className="mt-1 block w-full rounded border px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
-                  <input type="password" name="password_confirmation" value={form.password_confirmation} onChange={onChange} className="mt-1 block w-full rounded border px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                  <input
+                    type="password"
+                    name="password_confirmation"
+                    value={form.password_confirmation}
+                    onChange={onChange}
+                    onFocus={() => setPwdInputsReadonly(false)}
+                    readOnly={pwdInputsReadonly}
+                    autoComplete="new-password"
+                    className="mt-1 block w-full rounded border px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
                 </div>
               </div>
               <div className="flex justify-end">

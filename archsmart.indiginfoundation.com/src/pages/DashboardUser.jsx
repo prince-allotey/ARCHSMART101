@@ -39,25 +39,39 @@ export default function DashboardUser() {
           ) : (
             <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {properties.map((p) => {
-                const backendOrigin = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-                const firstImage = Array.isArray(p.image_urls) && p.image_urls.length ? p.image_urls[0] : (Array.isArray(p.images) ? p.images[0] : null);
-                const resolveImage = () => {
-                  if (!firstImage) return null;
-                  if (/^https?:\/\//i.test(firstImage)) return firstImage;
-                  if (firstImage.startsWith('/storage/')) return `${backendOrigin}${firstImage}`;
-                  if (!firstImage.startsWith('/')) return `${backendOrigin}/storage/${firstImage}`;
-                  return firstImage;
-                };
                 return (
                   <li key={p.id} className="border rounded p-4 bg-gray-50">
-                    {resolveImage() && (
+                    {(function () {
+                      const raw = (Array.isArray(p.image_urls) && p.image_urls.length)
+                        ? p.image_urls
+                        : (Array.isArray(p.images) ? p.images : []);
+                      const normalized = raw
+                        .map((it) => {
+                          if (!it) return null;
+                          if (typeof it === "string") return it;
+                          if (it.url) return it.url;
+                          if (it.path) return it.path;
+                          if (it.filename) return it.filename;
+                          return null;
+                        })
+                        .filter(Boolean);
+                      const resolved = Array.from(new Set(normalized.map((src) => assetUrl(src))));
+                      const first = resolved[0] || null;
+                      return first ? (
                         <img
-                        src={resolveImage()}
-                        alt={p.title}
-                        className="w-full h-32 object-cover rounded mb-2"
-                        onError={(e)=>{ const img = e.currentTarget; if (img.dataset.__fallbackApplied) return; img.dataset.__fallbackApplied = '1'; img.onerror = null; img.src = assetUrl('/properties/placeholder.jpg'); }}
-                      />
-                    )}
+                          src={first}
+                          alt={p.title}
+                          className="w-full h-32 object-cover rounded mb-2"
+                          onError={(e) => {
+                            const img = e.currentTarget;
+                            if (img.dataset.__fallbackApplied) return;
+                            img.dataset.__fallbackApplied = "1";
+                            img.onerror = null;
+                            img.src = assetUrl("/properties/placeholder.jpg");
+                          }}
+                        />
+                      ) : null;
+                    })()}
                     <h3 className="font-semibold">{p.title || p.name || 'Unnamed'}</h3>
                     <p className="text-sm text-gray-600">{p.location || p.address || '—'}</p>
                     <p className="mt-2 text-indigo-600 font-semibold">GHS {p.price ? Number(p.price).toLocaleString() : '—'}</p>

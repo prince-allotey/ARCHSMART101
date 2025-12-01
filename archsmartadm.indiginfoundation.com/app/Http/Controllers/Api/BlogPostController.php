@@ -16,7 +16,26 @@ use Minishlink\WebPush\WebPush;
 
 class BlogPostController extends Controller
 {
-    // Admin: list all posts regardless of status
+    /**
+     * Admin: list all posts regardless of status
+     * 
+     * @OA\Get(
+     *     path="/admin/blog-posts",
+     *     tags={"Blog Posts", "Admin"},
+     *     summary="Get all blog posts (Admin)",
+     *     description="Retrieve all blog posts including drafts and published. Admin only.",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of all blog posts",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/BlogPost")
+     *         )
+     *     ),
+     *     @OA\Response(response=403, description="Forbidden - Admin only")
+     * )
+     */
     public function adminIndex()
     {
         $posts = BlogPost::with('user:id,name')
@@ -25,6 +44,24 @@ class BlogPostController extends Controller
         return response()->json($posts);
     }
 
+    /**
+     * Get published blog posts
+     * 
+     * @OA\Get(
+     *     path="/blog-posts",
+     *     tags={"Blog Posts"},
+     *     summary="Get published blog posts",
+     *     description="Retrieve all published blog posts with author information",
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of published blog posts",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/BlogPost")
+     *         )
+     *     )
+     * )
+     */
     public function index()
     {
         // return published posts with author information
@@ -36,6 +73,29 @@ class BlogPostController extends Controller
         return response()->json($posts);
     }
 
+    /**
+     * Get blog post by slug
+     * 
+     * @OA\Get(
+     *     path="/blog-posts/{slug}",
+     *     tags={"Blog Posts"},
+     *     summary="Get blog post by slug",
+     *     description="Retrieve a single blog post by its slug or ID. Supports fuzzy matching for slugs.",
+     *     @OA\Parameter(
+     *         name="slug",
+     *         in="path",
+     *         required=true,
+     *         description="Blog post slug or ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Blog post details",
+     *         @OA\JsonContent(ref="#/components/schemas/BlogPost")
+     *     ),
+     *     @OA\Response(response=404, description="Blog post not found")
+     * )
+     */
     public function show($slug)
     {
         // Support fetching by slug (preferred) or numeric id (fallback).
@@ -91,6 +151,52 @@ class BlogPostController extends Controller
         return response()->json($post);
     }
 
+    /**
+     * Create new blog post
+     * 
+     * @OA\Post(
+     *     path="/blog-posts",
+     *     tags={"Blog Posts"},
+     *     summary="Create new blog post",
+     *     description="Create a new blog post. Authenticated users can create posts.",
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"title", "content", "status"},
+     *                 @OA\Property(property="title", type="string", example="10 Tips for Home Buyers"),
+     *                 @OA\Property(property="subtitle", type="string", example="A comprehensive guide"),
+     *                 @OA\Property(property="excerpt", type="string", example="Learn essential tips..."),
+     *                 @OA\Property(property="summary", type="string", example="Detailed summary of the post"),
+     *                 @OA\Property(property="content", type="string", example="<p>Full content with HTML...</p>"),
+     *                 @OA\Property(property="category", type="string", example="real-estate"),
+     *                 @OA\Property(property="status", type="string", enum={"draft", "published"}, example="published"),
+     *                 @OA\Property(property="meta_title", type="string", example="SEO Title"),
+     *                 @OA\Property(property="meta_description", type="string", example="SEO Description"),
+     *                 @OA\Property(property="canonical_url", type="string", example="https://example.com/blog/post"),
+     *                 @OA\Property(property="seo_keywords", type="string", example="real estate, tips, buying"),
+     *                 @OA\Property(property="is_featured", type="boolean", example=false),
+     *                 @OA\Property(property="cover_image_alt", type="string", example="Beautiful home"),
+     *                 @OA\Property(property="estimated_read_time", type="integer", example=5),
+     *                 @OA\Property(property="reading_level", type="string", example="beginner"),
+     *                 @OA\Property(property="layout", type="string", example="standard"),
+     *                 @OA\Property(property="tags", type="string", example="real-estate,tips"),
+     *                 @OA\Property(property="image", type="string", format="binary"),
+     *                 @OA\Property(property="secondary_image", type="string", format="binary")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Blog post created successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/BlogPost")
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -150,6 +256,12 @@ class BlogPostController extends Controller
                 $decoded = json_decode($tags, true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                     $post->tags = $decoded;
+                } else {
+                    // Fallback: comma or pipe separated values
+                    $parts = preg_split('/[\s,|]+/u', $tags, -1, PREG_SPLIT_NO_EMPTY);
+                    if ($parts && count($parts)) {
+                        $post->tags = array_values(array_unique(array_map(fn($t) => strtolower(trim($t)), $parts)));
+                    }
                 }
             } elseif (is_array($tags)) {
                 $post->tags = $tags;
@@ -194,6 +306,41 @@ class BlogPostController extends Controller
         return response()->json($post, 201);
     }
 
+    /**
+     * Update blog post
+     * 
+     * @OA\Put(
+     *     path="/blog-posts/{blogPost}",
+     *     tags={"Blog Posts"},
+     *     summary="Update blog post",
+     *     description="Update an existing blog post. Authors can update their own posts, admins can update any post.",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="blogPost",
+     *         in="path",
+     *         required=true,
+     *         description="Blog Post ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="title", type="string", example="Updated Title"),
+     *             @OA\Property(property="subtitle", type="string", example="Updated subtitle"),
+     *             @OA\Property(property="content", type="string", example="<p>Updated content...</p>"),
+     *             @OA\Property(property="status", type="string", enum={"draft", "published"}),
+     *             @OA\Property(property="category", type="string", example="real-estate"),
+     *             @OA\Property(property="tags", type="array", @OA\Items(type="string"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Blog post updated successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/BlogPost")
+     *     ),
+     *     @OA\Response(response=403, description="Forbidden"),
+     *     @OA\Response(response=404, description="Blog post not found")
+     * )
+     */
     public function update(Request $request, BlogPost $blogPost)
     {
         $user = Auth::user();
@@ -258,6 +405,11 @@ class BlogPostController extends Controller
                 $decoded = json_decode($tags, true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                     $blogPost->tags = $decoded;
+                } else {
+                    $parts = preg_split('/[\s,|]+/u', $tags, -1, PREG_SPLIT_NO_EMPTY);
+                    if ($parts && count($parts)) {
+                        $blogPost->tags = array_values(array_unique(array_map(fn($t) => strtolower(trim($t)), $parts)));
+                    }
                 }
             } elseif (is_array($tags)) {
                 $blogPost->tags = $tags;
@@ -298,6 +450,33 @@ class BlogPostController extends Controller
         return response()->json($blogPost);
     }
 
+    /**
+     * Delete blog post
+     * 
+     * @OA\Delete(
+     *     path="/blog-posts/{blogPost}",
+     *     tags={"Blog Posts"},
+     *     summary="Delete blog post",
+     *     description="Delete a blog post. Authors can delete their own posts, admins can delete any post.",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="blogPost",
+     *         in="path",
+     *         required=true,
+     *         description="Blog Post ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Blog post deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Deleted successfully")
+     *         )
+     *     ),
+     *     @OA\Response(response=403, description="Forbidden"),
+     *     @OA\Response(response=404, description="Blog post not found")
+     * )
+     */
     public function destroy(BlogPost $blogPost)
     {
         $user = Auth::user();

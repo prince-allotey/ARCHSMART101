@@ -1,28 +1,29 @@
+// src/api/property.js
+
 import api from "./axios";
 
-const API_URL = "/api";
+// Axios baseURL already includes /api
 
 export const getAgentProperties = async () => {
-  const response = await api.get(`${API_URL}/agent/properties`);
+  const response = await api.get("/api/properties/my");
   return response.data;
 };
 
 export const getProperty = async (id) => {
-  const response = await api.get(`${API_URL}/properties/${id}`);
+  const response = await api.get(`/api/properties/${id}`);
   return response.data;
 };
 
 export const createProperty = async (propertyData) => {
-  // propertyData may be FormData or JSON
-  const response = await api.post(`${API_URL}/properties`, propertyData);
+  const response = await api.post("/api/properties", propertyData);
   return response.data;
 };
 
 export const updateProperty = async (id, propertyData) => {
-  const response = await api.put(`${API_URL}/properties/${id}`, propertyData);
+  const response = await api.put(`/api/properties/${id}`, propertyData);
   return response.data;
 };
 
 export const deleteProperty = async (id) => {
-  await api.delete(`${API_URL}/properties/${id}`);
+  await api.delete(`/api/properties/${id}`);
 };

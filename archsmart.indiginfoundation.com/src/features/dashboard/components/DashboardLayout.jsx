@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import {
 	LayoutDashboard,
@@ -23,6 +23,7 @@ import { resolveUploadedUrl, assetUrl } from "../../../api/config";
 export default function DashboardLayout({ children }) {
 	const { user, logout } = useAuth();
 	const navigate = useNavigate();
+	const location = useLocation();
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [showAccountMenu, setShowAccountMenu] = useState(false);
 	const [showNotifications, setShowNotifications] = useState(false);
@@ -108,28 +109,36 @@ export default function DashboardLayout({ children }) {
 			: userLinks;
 
 	return (
-		<div className="min-h-screen flex bg-gray-100">
+		<div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-blue-50/30 to-white">
 			{/* Sidebar */}
 			<aside
 				className={`${
-					sidebarOpen ? "w-64" : "w-0"
-				} bg-white transition-all duration-300 overflow-hidden flex flex-col shadow-lg`}
+					sidebarOpen ? "w-72" : "w-0"
+				} bg-gradient-to-b from-white via-blue-50/50 to-slate-50/50 transition-all duration-300 overflow-hidden flex flex-col shadow-2xl border-r border-blue-100/50 backdrop-blur-sm`}
 			>
 				{/* Logo Section */}
-				<div className="p-6 border-b border-gray-200">
-					<div className="flex items-center gap-3">
-						<div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-							<Home className="w-6 h-6 text-white" />
+				<div className="p-8 border-b border-blue-100/50 bg-gradient-to-r from-blue-600/5 to-slate-600/5">
+					<div className="flex items-center gap-4">
+						<div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-slate-600 rounded-xl flex items-center justify-center shadow-lg">
+							<Home className="w-7 h-7 text-white" />
 						</div>
 						<div>
-							<h2 className="text-xl font-bold text-gray-800">ArchSmart</h2>
-							<p className="text-xs text-gray-500">Admin Panel</p>
+							<h2 className="text-2xl font-bold text-gray-800 tracking-tight">ArchSmart</h2>
+							<p className="text-sm text-blue-600 font-medium">Admin Dashboard</p>
 						</div>
+					</div>
+					<div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-slate-50 rounded-lg border border-blue-100/50">
+						<p className="text-xs text-gray-600 leading-relaxed">
+							Professional property management platform for modern real estate businesses.
+						</p>
 					</div>
 				</div>
 
 				{/* Navigation */}
-				<nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+				<nav className="flex-1 p-6 space-y-2 overflow-y-auto">
+					<div className="mb-6">
+						<h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">Platform Management</h3>
+					</div>
 					{links.map((link) => {
 						const Icon = link.icon;
 						return (
@@ -138,86 +147,104 @@ export default function DashboardLayout({ children }) {
 								to={link.to}
 								end
 								className={({ isActive }) =>
-									`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+									`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-200 group ${
 										isActive
-											? "bg-blue-50 text-blue-600 font-medium shadow-sm"
-											: "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+											? "bg-gradient-to-r from-blue-600 to-slate-600 text-white shadow-lg transform scale-105"
+											: "text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-slate-50 hover:text-blue-700 hover:shadow-md hover:transform hover:scale-102"
 									}`
 								}
 							>
-								<Icon className="w-5 h-5" />
-								<span>{link.label}</span>
+								<div className={`p-2 rounded-lg transition-all duration-200 ${
+									location.pathname === link.to
+										? "bg-white/20"
+										: "bg-gray-100 group-hover:bg-blue-100"
+								}`}>
+									<Icon className={`w-5 h-5 transition-colors duration-200 ${
+										location.pathname === link.to
+											? "text-white"
+											: "text-gray-600 group-hover:text-blue-600"
+									}`} />
+								</div>
+								<span className="font-medium">{link.label}</span>
 							</NavLink>
 						);
 					})}
 				</nav>
 
 				{/* User Section */}
-				<div className="p-4 border-t border-gray-200">
-					<div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg mb-2">
+				<div className="p-6 border-t border-blue-100/50 bg-gradient-to-r from-blue-50/50 to-slate-50/50">
+					<div className="flex items-center gap-4 px-4 py-4 bg-white/80 backdrop-blur-sm rounded-xl border border-white/50 shadow-sm">
 						{user?.profile_picture_url ? (
 									<img 
 										src={resolveUploadedUrl(user.profile_picture_url) || assetUrl('/profile_pictures/placeholder.jpg')} 
 										alt={user.name} 
-										className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
+										className="w-12 h-12 rounded-xl object-cover border-2 border-blue-200 shadow-sm"
 									/>
 								) : (
-							<div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-								<User className="w-5 h-5 text-white" />
+							<div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-slate-600 rounded-xl flex items-center justify-center shadow-lg">
+								<User className="w-6 h-6 text-white" />
 							</div>
 						)}
 						<div className="flex-1 min-w-0">
-							<p className="text-sm font-medium text-gray-800 truncate">
+							<p className="text-sm font-semibold text-gray-800 truncate">
 								{user?.name || "Guest"}
 							</p>
-							<p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+							<p className="text-xs text-blue-600 font-medium capitalize bg-blue-100/50 px-2 py-1 rounded-full w-fit mt-1">
+								{user?.role}
+							</p>
 						</div>
 					</div>
-					<button
-						onClick={handleLogout}
-						className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
-					>
-						<LogOut className="w-5 h-5" />
-						<span>Logout</span>
-					</button>
+					<div className="mt-4">
+						<button
+							onClick={handleLogout}
+							className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 hover:text-red-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+						>
+							<div className="p-1.5 bg-red-100 rounded-lg">
+								<LogOut className="w-4 h-4" />
+							</div>
+							<span>Sign Out</span>
+						</button>
+					</div>
 				</div>
 			</aside>
 
 			{/* Main Content */}
 			<div className="flex-1 flex flex-col min-w-0">
 				{/* Top Navbar */}
-				<header className="bg-white shadow-sm border-b border-gray-200">
-					<div className="px-6 py-4 flex items-center justify-between">
-						<div className="flex items-center gap-4">
+				<header className="relative z-50 bg-gradient-to-r from-white via-blue-50/30 to-slate-50/30 backdrop-blur-sm shadow-lg border-b border-blue-100/50">
+					<div className="px-8 py-5 flex items-center justify-between min-h-[72px]">
+						<div className="flex items-center gap-6 flex-1 min-w-0">
 							<button
 								onClick={() => setSidebarOpen(!sidebarOpen)}
-								className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+								className="p-3 hover:bg-white/80 rounded-xl transition-all duration-200 hover:shadow-md flex-shrink-0"
 							>
 								{sidebarOpen ? (
-									<X className="w-5 h-5 text-gray-600" />
+									<X className="w-5 h-5 text-gray-700" />
 								) : (
-									<Menu className="w-5 h-5 text-gray-600" />
+									<Menu className="w-5 h-5 text-gray-700" />
 								)}
 							</button>
-							<div className="relative hidden md:block">
-								<Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-								<input
-									type="text"
-									placeholder="Search..."
-									className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
-								/>
+							<div className="hidden md:block min-w-0 flex-1">
+								<h1 className="text-xl font-bold text-gray-800 truncate">Dashboard Overview</h1>
+								<p className="text-sm text-gray-600 truncate">Monitor your platform performance</p>
 							</div>
 						</div>
 
-						<div className="flex items-center gap-4">
+						<div className="flex items-center gap-4 flex-shrink-0">
+							{/* Status Indicator */}
+							<div className="hidden lg:flex items-center gap-2 bg-green-50 border border-green-200 rounded-full px-4 py-2">
+								<div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+								<span className="text-sm font-medium text-green-700">All Systems Operational</span>
+							</div>
+
 							<div className="relative" ref={notificationsRef}>
-								<button 
+								<button
 									onClick={openNotifications}
-									className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+									className="relative p-3 hover:bg-white/80 rounded-xl transition-all duration-200 hover:shadow-md z-10"
 								>
-									<Bell className="w-5 h-5 text-gray-600" />
+									<Bell className="w-5 h-5 text-gray-700" />
 									{unread > 0 && (
-										<span className="absolute -top-1 -right-1 min-w-[18px] h-5 px-1 text-[10px] leading-5 bg-red-500 text-white rounded-full text-center">
+										<span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 text-[10px] leading-5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full text-center font-bold shadow-lg z-20">
 											{unread > 9 ? '9+' : unread}
 										</span>
 									)}
@@ -243,8 +270,8 @@ export default function DashboardLayout({ children }) {
 																	{n.body && <p className="text-xs text-gray-600 mt-0.5">{n.body}</p>}
 																	<p className="text-[10px] text-gray-400 mt-1">{n.created_at ? new Date(n.created_at).toLocaleString() : ''}</p>
 																</div>
-														</div>
-													</li>
+															</div>
+														</li>
 													))}
 												</ul>
 											)}
@@ -281,11 +308,9 @@ export default function DashboardLayout({ children }) {
 										<div className="p-3 border-b border-gray-200 flex items-center gap-3">
 											{user?.profile_picture_url ? (
 												<img 
-													src={(function(){
-														return resolveUploadedUrl(user.profile_picture_url) || assetUrl('/profile_pictures/placeholder.jpg');
-													})()} 
-												alt={user.name} 
-												className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
+													src={resolveUploadedUrl(user.profile_picture_url) || assetUrl('/profile_pictures/placeholder.jpg')} 
+													alt={user.name} 
+													className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
 												/>
 											) : (
 												<div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">

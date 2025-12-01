@@ -25,11 +25,11 @@ const PropertiesSection = ({ searchFilters }) => {
     if (/^https?:\/\//i.test(imagePath)) return imagePath;
     // Backend storage path
     if (imagePath.startsWith('/storage/')) {
-      return `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}${imagePath}`;
+      return `${import.meta.env.VITE_BACKEND_URL || 'https://archsmartadm.indiginfoundation.com'}${imagePath}`;
     }
     // Stored relative path like 'properties/xyz.jpg' from Laravel -> map to /storage/
     if (!imagePath.startsWith('/')) {
-      return `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/storage/${imagePath}`;
+      return `${import.meta.env.VITE_BACKEND_URL || 'https://archsmartadm.indiginfoundation.com'}/storage/${imagePath}`;
     }
     return imagePath; // fallback
   };
@@ -43,18 +43,16 @@ const PropertiesSection = ({ searchFilters }) => {
       setLoading(true);
       try {
         const response = await api.get("/api/properties");
-        const apiProperties = response.data || [];
-        
-        // Use API properties if available, otherwise set empty list
-        if (apiProperties.length > 0) {
-          setProperties(apiProperties);
-        } else {
-          setProperties([]);
+        let apiProperties = response.data;
+        // Defensive: ensure apiProperties is always an array
+        if (!Array.isArray(apiProperties)) {
+          apiProperties = [];
         }
+        setProperties(apiProperties);
       } catch (error) {
         console.error("Failed to fetch properties:", error);
-  // On error, show empty state (do not render mock/demo data)
-  setProperties([]);
+        // On error, show empty state (do not render mock/demo data)
+        setProperties([]);
       } finally {
         setLoading(false);
       }
@@ -110,9 +108,11 @@ const PropertiesSection = ({ searchFilters }) => {
   const filteredProperties = filterProperties(properties);
 
   // Limit properties for non-authenticated users (compute early so hooks can use values)
+  // Defensive: ensure filteredProperties is always an array
+  const safeFilteredProperties = Array.isArray(filteredProperties) ? filteredProperties : [];
   const displayedProperties = user
-    ? filteredProperties
-    : filteredProperties.slice(0, GUEST_PROPERTY_LIMIT);
+    ? safeFilteredProperties
+    : safeFilteredProperties.slice(0, GUEST_PROPERTY_LIMIT);
   const hasMoreProperties = !user && filteredProperties.length > GUEST_PROPERTY_LIMIT;
   const hiddenPropertiesCount = Math.max(0, filteredProperties.length - GUEST_PROPERTY_LIMIT);
 
@@ -157,112 +157,105 @@ const PropertiesSection = ({ searchFilters }) => {
   } else {
     content = (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {displayedProperties.map((property) => {
-        const isFavorite = favorites.includes(property.id);
-        return (
-          <div
-            key={property.id}
-            className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 relative group"
-          >
-            <div className="relative">
-              {(() => {
-                const raw = (Array.isArray(property.image_urls) && property.image_urls.length) ? property.image_urls : (Array.isArray(property.images) ? property.images : []);
-                // Normalize entries to strings, then resolve final URL via assetUrl before deduping.
-                const imgs = raw
-                  .map(it => (typeof it === 'string' ? it : (it && (it.url || it.path || it.filename) ? (it.url || it.path || it.filename) : null)))
-                  .filter(Boolean);
-                const resolved = imgs.map(i => assetUrl(i));
-                // Debug: log raw vs resolved to help diagnose duplicate-image issues
-                // eslint-disable-next-line no-console
-                console.debug('[PropertiesSection] property', property.id, 'rawImages', imgs, 'resolved', resolved);
-                const first = Array.from(new Set(resolved))[0];
-                return first ? (
-                  <img
-                    src={first}
-                    alt={property.title}
-                    className="w-full h-56 object-cover transition-transform duration-300 group-hover:scale-105"
-                    onError={(e) => {
-                      const img = e.currentTarget;
-                      if (img.dataset.__fallbackApplied) return;
-                      img.dataset.__fallbackApplied = '1';
-                      img.onerror = null;
-                      img.src = assetUrl('/properties/placeholder.jpg');
-                    }}
-                  />
-                ) : (
-                  <div className="w-full h-56 bg-gray-200 flex items-center justify-center text-gray-500">
-                    No Image Available
-                  </div>
-                );
-              })()}
+        {Array.isArray(displayedProperties) ? displayedProperties.map((property) => {
+          const isFavorite = favorites.includes(property.id);
+          return (
+            <div
+              key={property.id}
+              className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 relative group"
+            >
+              <div className="relative">
+                {(() => {
+                  const raw = (Array.isArray(property.image_urls) && property.image_urls.length) ? property.image_urls : (Array.isArray(property.images) ? property.images : []);
+                  // Normalize entries to strings, then resolve final URL via assetUrl before deduping.
+                  const imgs = raw
+                    .map(it => (typeof it === 'string' ? it : (it && (it.url || it.path || it.filename) ? (it.url || it.path || it.filename) : null)))
+                    .filter(Boolean);
+                  const resolved = imgs.map(i => assetUrl(i));
+                  // Debug: log raw vs resolved to help diagnose duplicate-image issues
+                  // eslint-disable-next-line no-console
+                  console.debug('[PropertiesSection] property', property.id, 'rawImages', imgs, 'resolved', resolved);
+                  const first = Array.from(new Set(resolved))[0];
+                  return first ? (
+                    <img
+                      src={first}
+                      alt={property.title || 'Property'}
+                      className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-56 bg-gray-200 flex items-center justify-center text-gray-400">
+                      No image
+                    </div>
+                  );
+                })()}
 
-              {property.is_smart_home && (
-                <span className="absolute top-3 left-3 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">
-                  Smart Home
-                </span>
-              )}
-
-              {property.isSmartHome && (
-                <span className="absolute top-3 left-3 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">
-                  Smart Home
-                </span>
-              )}
-
-              <button
-                onClick={() => toggleFavorite(property.id)}
-                className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md shadow-md transition ${
-                  isFavorite
-                    ? "bg-red-500 text-white"
-                    : "bg-white/80 text-gray-600 hover:text-red-500"
-                }`}
-              >
-                <Heart
-                  size={18}
-                  fill={isFavorite ? "white" : "none"}
-                  className="transition-transform duration-200 hover:scale-110"
-                />
-              </button>
-            </div>
-
-            <div className="p-5">
-              <h3 className="text-xl font-bold text-gray-900 mb-1">
-                {property.title}
-              </h3>
-
-              <div className="flex items-center text-gray-600 mb-3">
-                <MapPin className="w-4 h-4 mr-1 text-blue-500" />
-                {property.location}
-              </div>
-
-              <div className="flex items-center justify-between text-sm text-gray-700 mb-3">
-                <div className="flex items-center gap-2">
-                  <Home className="w-4 h-4 text-gray-500" /> {property.type}
-                </div>
-                {property.bedrooms && (
-                  <div className="flex items-center gap-1">
-                    <BedDouble className="w-4 h-4 text-gray-500" /> {property.bedrooms} beds
-                  </div>
+                {property.is_smart_home && (
+                  <span className="absolute top-3 left-3 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">
+                    Smart Home
+                  </span>
                 )}
+
+                {property.isSmartHome && (
+                  <span className="absolute top-3 left-3 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">
+                    Smart Home
+                  </span>
+                )}
+
+                <button
+                  onClick={() => toggleFavorite(property.id)}
+                  className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md shadow-md transition ${
+                    isFavorite
+                      ? "bg-red-500 text-white"
+                      : "bg-white/80 text-gray-600 hover:text-red-500"
+                  }`}
+                >
+                  <Heart
+                    size={18}
+                    fill={isFavorite ? "white" : "none"}
+                    className="transition-transform duration-200 hover:scale-110"
+                  />
+                </button>
               </div>
 
-              <div className="text-lg font-bold text-emerald-600 mb-4">
-                {new Intl.NumberFormat("en-GH", {
-                  style: "currency",
-                  currency: "GHS",
-                  maximumFractionDigits: 0,
-                }).format(property.price)}
-              </div>
+              <div className="p-5">
+                <h3 className="text-xl font-bold text-gray-900 mb-1">
+                  {property.title}
+                </h3>
 
-              <button
-                onClick={() => navigate(`/properties/${property.id}`)}
-                className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 text-white py-2 rounded-lg font-semibold hover:opacity-90 transition"
-              >
-                View Details
-              </button>
+                <div className="flex items-center text-gray-600 mb-3">
+                  <MapPin className="w-4 h-4 mr-1 text-blue-500" />
+                  {property.location}
+                </div>
+
+                <div className="flex items-center justify-between text-sm text-gray-700 mb-3">
+                  <div className="flex items-center gap-2">
+                    <Home className="w-4 h-4 text-gray-500" /> {property.type}
+                  </div>
+                  {property.bedrooms && (
+                    <div className="flex items-center gap-1">
+                      <BedDouble className="w-4 h-4 text-gray-500" /> {property.bedrooms} beds
+                    </div>
+                  )}
+                </div>
+
+                <div className="text-lg font-bold text-emerald-600 mb-4">
+                  {new Intl.NumberFormat("en-GH", {
+                    style: "currency",
+                    currency: "GHS",
+                    maximumFractionDigits: 0,
+                  }).format(property.price)}
+                </div>
+
+                <button
+                  onClick={() => navigate(`/properties/${property.id}`)}
+                  className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 text-white py-2 rounded-lg font-semibold hover:opacity-90 transition"
+                >
+                  View Details
+                </button>
+              </div>
             </div>
-          </div>
-        );
-        })}
+          );
+        }) : null}
       </div>
     );
   }
